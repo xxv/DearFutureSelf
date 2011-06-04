@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="info.staticfree.android.dearfutureself"
+      android:versionCode="1"
+      android:versionName="1.0">
+	<supports-screens android:anyDensity="true" />
+
+	<uses-sdk android:targetSdkVersion="7" />
+
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+    	<activity android:name=".DestinationEdit" android:label="destination edit test">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>    		
+    	</activity>
+    	
+        <activity android:name=".MessageList"
+        
+                  android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="MessageEdit" android:label="Edit Message">
+        	<intent-filter>
+        		<action android:name="android.intent.action.INSERT" />
+        		<category android:name="android.intent.category.DEFAULT" />
+        		<data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
+        	</intent-filter>
+        	<intent-filter>
+        		<action android:name="android.intent.action.EDIT" />
+        		<category android:name="android.intent.category.DEFAULT" />
+        		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
+        	</intent-filter>
+        </activity>
+        
+        <activity android:name="MessageView">
+           	<intent-filter>
+        		<action android:name="android.intent.action.VIEW" />
+        		<category android:name="android.intent.category.DEFAULT" />
+        		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
+        	</intent-filter>
+        </activity>
+        
+        <provider android:authorities="info.staticfree.android.dearfutureself" android:name=".content.MessageProvider" />
+
+    </application>
+</manifest>
