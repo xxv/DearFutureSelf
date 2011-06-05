@@ -4,7 +4,7 @@ import android.provider.BaseColumns;
 
 public abstract interface DataItem extends BaseColumns {
 
-	@DBColumn(type=IntegerColumn.class, primaryKey=true)
+	@DBColumn(type=IntegerColumn.class, primaryKey=true, autoIncrement=true)
 	public static final String _ID = BaseColumns._ID;
 
 }

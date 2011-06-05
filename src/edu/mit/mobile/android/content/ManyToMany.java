@@ -114,7 +114,7 @@ public class ManyToMany {
 		 *
 		 * @return
 		 */
-		public void createJoinTable(SQLiteDatabase db){
+		public void createTables(SQLiteDatabase db){
 			db.execSQL("CREATE TABLE "+mJoinTable + " ("
 					+ ManyToManyColumns._ID 			+ " INTEGER PRIMARY KEY,"
 					+ ManyToManyColumns.TO_ID   		+ " INTEGER"
@@ -355,6 +355,13 @@ public class ManyToMany {
 					ProviderUtils.addExtraWhere(selection, BaseColumns._ID+"=?"),
 					ProviderUtils.addExtraWhereArgs(selectionArgs, childId),
 					sortOrder);
+		}
+
+		@Override
+		public void upgradeTables(SQLiteDatabase db, int oldVersion, int newVersion) {
+			db.execSQL("DROP TABLES IF EXIST " + mJoinTable);
+			createTables(db);
+
 		}
 	}
 }

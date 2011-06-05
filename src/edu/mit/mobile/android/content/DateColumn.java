@@ -4,6 +4,8 @@ import android.database.Cursor;
 
 public class DateColumn extends DBColumnType<java.util.Date> {
 
+	public final static String CURRENT_TIMESTAMP = "CURRENT_TIMESTAMP";
+
 	@Override
 	public String toCreateColumn(String colName) {
 		return toColumnDef(colName, "INTEGER");

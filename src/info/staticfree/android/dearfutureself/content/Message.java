@@ -21,7 +21,7 @@ public class Message implements DataItem {
 	@DBColumn(type=TextColumn.class)
 	public static final String TYPE = "type";
 
-	@DBColumn(type=DateColumn.class)
+	@DBColumn(type=DateColumn.class, defaultValue=DateColumn.CURRENT_TIMESTAMP)
 	public static final String DATE_SENT 			= "date_sent";
 
 	@DBColumn(type=IntegerColumn.class)

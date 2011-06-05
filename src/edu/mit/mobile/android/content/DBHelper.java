@@ -49,4 +49,19 @@ public interface DBHelper {
 			String sortOrder);
 
 	public abstract String getPath();
+
+	/**
+	 * Creates the tables for the items of this helper.
+	 *
+	 * @param db
+	 */
+	public abstract void createTables(SQLiteDatabase db);
+
+	/**
+	 * Upgrades the tables for the times of this helper.
+	 * @param db
+	 * @param oldVersion TODO
+	 * @param newVersion TODO
+	 */
+	public abstract void upgradeTables(SQLiteDatabase db, int oldVersion, int newVersion);
 }

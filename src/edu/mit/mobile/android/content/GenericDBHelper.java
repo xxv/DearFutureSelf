@@ -24,6 +24,7 @@ import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -59,8 +60,9 @@ public class GenericDBHelper implements DBHelper {
 		mContentUri = contentUri;
 	}
 
-	public void upgradeTable(SQLiteDatabase db){
+	public void upgradeTables(SQLiteDatabase db, int oldVersion, int newVersion){
 		db.execSQL("DROP TABLE IF EXISTS " + mTable);
+		createTables(db);
 	}
 
 	private String extractTableName(){
@@ -95,8 +97,7 @@ public class GenericDBHelper implements DBHelper {
 		return mTable;
 	}
 
-	public void createTable(SQLiteDatabase db){
-
+	public void createTables(SQLiteDatabase db){
 		try{
 			final StringBuilder table = new StringBuilder();
 
@@ -113,7 +114,9 @@ public class GenericDBHelper implements DBHelper {
 
 				final DBColumn t = field.getAnnotation(DBColumn.class);
 				if (t != null){
+					@SuppressWarnings("rawtypes")
 					final Class<? extends DBColumnType> columnType = t.type();
+					@SuppressWarnings("rawtypes")
 					final DBColumnType typeInstance = columnType.newInstance();
 
 					if (needSep){
@@ -124,7 +127,25 @@ public class GenericDBHelper implements DBHelper {
 					table.append(typeInstance.toCreateColumn(dbColumnName));
 					if (t.primaryKey()){
 						table.append(" PRIMARY KEY");
+						if (t.autoIncrement()){
+							table.append(" AUTOINCREMENT");
+						}
 					}
+
+					if (t.notnull()){
+						table.append(" NOT NULL");
+					}
+
+					final String defaultValue = t.defaultValue();
+					if (! DBColumn.NULL.equals(defaultValue)){
+						table.append(" DEFAULT ");
+						if (DateColumn.CURRENT_TIMESTAMP == defaultValue){
+							table.append(defaultValue);
+						}else{
+							DatabaseUtils.appendValueToSql(table, defaultValue);
+						}
+					}
+
 					needSep = true;
 				}
 			}
@@ -146,7 +167,6 @@ public class GenericDBHelper implements DBHelper {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
 	@Override
