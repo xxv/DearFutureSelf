@@ -16,6 +16,11 @@
 			android:layout_height="fill_parent"
 			android:orientation="vertical"
 		>
+					<info.staticfree.android.dearfutureself.TimelineEntry
+				android:id="@+id/timeline"
+				android:layout_width="fill_parent"
+				android:background="@drawable/timeline_background"
+				android:layout_height="70dip" />
 			<AutoCompleteTextView
 				android:id="@+id/destination"
 				android:layout_height="wrap_content"

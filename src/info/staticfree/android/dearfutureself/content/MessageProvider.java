@@ -1,7 +1,6 @@
 package info.staticfree.android.dearfutureself.content;
 
-import edu.mit.mobile.android.content.DBHelperMapper;
-import edu.mit.mobile.android.content.GenericDBHelper;
+import edu.mit.mobile.android.content.QuerystringDBHelper;
 import edu.mit.mobile.android.content.SimpleContentProvider;
 
 
@@ -11,12 +10,11 @@ public class MessageProvider extends SimpleContentProvider {
 		AUTHORITY = "info.staticfree.android.dearfutureself";
 
 	public MessageProvider() {
-		super(AUTHORITY, "content", 11);
+		super(AUTHORITY, 13);
 
-		final GenericDBHelper messageHelper = new GenericDBHelper(Message.class, Message.CONTENT_URI);
+		final QuerystringDBHelper messageHelper = new QuerystringDBHelper(Message.class, Message.CONTENT_URI);
 
 		addDBHelper(messageHelper);
-		addDirUri(messageHelper, Message.PATH, DBHelperMapper.TYPE_ALL);
-		addItemUri(messageHelper, Message.PATH + "/#", DBHelperMapper.TYPE_ALL);
+		addDirAndItemUri(messageHelper, Message.PATH);
 	}
 }

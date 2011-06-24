@@ -6,4 +6,7 @@
     <string name="hint_subject">Subject</string>
     <string name="hint_body">Message text</string>
     <string name="send">Send</string>
+    <string name="time_checkbox">When</string>
+    <string name="destination_name">Destination name</string>
+    <string name="where">Where</string>
 </resources>

@@ -1,18 +1,24 @@
 package info.staticfree.android.dearfutureself.content;
 
 import android.net.Uri;
-import edu.mit.mobile.android.content.DBColumn;
-import edu.mit.mobile.android.content.DataItem;
-import edu.mit.mobile.android.content.DateColumn;
-import edu.mit.mobile.android.content.IntegerColumn;
+import edu.mit.mobile.android.content.ContentItem;
 import edu.mit.mobile.android.content.ProviderUtils;
-import edu.mit.mobile.android.content.TextColumn;
+import edu.mit.mobile.android.content.column.DBColumn;
+import edu.mit.mobile.android.content.column.DatetimeColumn;
+import edu.mit.mobile.android.content.column.IntegerColumn;
+import edu.mit.mobile.android.content.column.TextColumn;
 
-public class Message implements DataItem {
+public class Message implements ContentItem {
 
 	public static final String PATH = "message";
 
-	@DBColumn(type=TextColumn.class, notnull=true)
+	public static final int
+		STATE_DRAFT      = 0,
+		STATE_IN_TRANSIT = 1,
+		STATE_NEW        = 2,
+		STATE_READ       = 3;
+
+	@DBColumn(type=TextColumn.class, notnull = true)
 	public static final String SUBJECT = "subject";
 
 	@DBColumn(type=TextColumn.class)
@@ -21,8 +27,14 @@ public class Message implements DataItem {
 	@DBColumn(type=TextColumn.class)
 	public static final String TYPE = "type";
 
-	@DBColumn(type=DateColumn.class, defaultValue=DateColumn.CURRENT_TIMESTAMP)
+	@DBColumn(type=IntegerColumn.class, defaultValueInt = STATE_DRAFT)
+	public static final String STATE = "state";
+
+	@DBColumn(type=DatetimeColumn.class, defaultValue = DatetimeColumn.NOW_IN_MILLISECONDS)
 	public static final String DATE_SENT 			= "date_sent";
+
+	@DBColumn(type=DatetimeColumn.class, notnull = true)
+	public static final String DATE_ARRIVE = "date_arrive";
 
 	@DBColumn(type=IntegerColumn.class)
 	public static final String LOCATION_SENT_LAT 	= "location_sent_lat";
@@ -34,7 +46,7 @@ public class Message implements DataItem {
 	public static final String DESTINATION 		= "destination";
 
 	public static final Uri
-		CONTENT_URI = Uri.parse("content://"+MessageProvider.AUTHORITY+"/"+PATH);
+		CONTENT_URI = ProviderUtils.toContentUri(MessageProvider.AUTHORITY, PATH);
 
 	public static final String
 		CONTENT_TYPE_DIR = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH,

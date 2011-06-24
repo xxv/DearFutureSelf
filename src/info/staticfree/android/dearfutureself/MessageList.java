@@ -26,6 +26,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
 	private CursorAdapter mListAdapter;
 
+	private static final Uri INBOX_URI = Message.CONTENT_URI.buildUpon().
+		appendQueryParameter(Message.STATE, String.valueOf(Message.STATE_NEW)).
+		appendQueryParameter("|"+Message.STATE, String.valueOf(Message.STATE_READ)).build();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +56,9 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		return new CursorLoader(this, Message.CONTENT_URI, null, null, null, null);
+		return new CursorLoader(this, INBOX_URI, null,
+				null,
+				null, null);
 	}
 
 	@Override

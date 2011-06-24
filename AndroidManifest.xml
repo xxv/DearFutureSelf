@@ -5,16 +5,28 @@
       android:versionName="1.0">
 	<supports-screens android:anyDensity="true" />
 
-	<uses-sdk android:targetSdkVersion="7" />
+	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="10" />
+
+	<!-- OSMDroid permissions -->
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> 
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+	<!-- alarm -->
+	<uses-permission android:name="android.permission.VIBRATE" />
 
     <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+    <!-- 
     	<activity android:name=".DestinationEdit" android:label="destination edit test">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>    		
     	</activity>
-    	
+    	 -->
         <activity android:name=".MessageList"
         
                   android:label="@string/app_name">
@@ -43,6 +55,14 @@
         		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
         	</intent-filter>
         </activity>
+        
+        <service android:name="MessageService">
+        	<intent-filter>
+        		<action android:name="info.staticfree.android.dearfutureself.ACTION_SHOW_NOTIFICATION" />
+        		<action android:name="info.staticfree.android.dearfutureself.ACTION_SCHEDULE_MESSAGE" />
+        		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
+        	</intent-filter>        	
+        </service>
         
         <provider android:authorities="info.staticfree.android.dearfutureself" android:name=".content.MessageProvider" />
 

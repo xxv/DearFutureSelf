@@ -17,6 +17,7 @@ public class DestinationEdit extends FragmentActivity implements TimelineEntry.O
 		final TimelineEntry timeline = (TimelineEntry) findViewById(R.id.timeline);
 		timeline.setOnChangeListener(this);
 		mTimeView = (TextView) findViewById(R.id.time);
+
 	}
 
 	@Override

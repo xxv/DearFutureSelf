@@ -6,10 +6,54 @@
 
 	android:orientation="vertical"
 >
-    <TextView android:layout_height="wrap_content" android:text="TextView" android:id="@+id/time" android:layout_width="wrap_content"></TextView>
-
-		<info.staticfree.android.dearfutureself.TimelineEntry android:id="@+id/timeline"
+	<ScrollView
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+	>
+		<LinearLayout
+			xmlns:android="http://schemas.android.com/apk/res/android"
 			android:layout_width="fill_parent"
-			android:background="@drawable/timeline_background" android:layout_height="70dip"/>
+			android:layout_height="fill_parent"
+
+			android:orientation="vertical"
+		>
+			<EditText
+				android:layout_height="wrap_content"
+				android:layout_width="fill_parent"
+				android:id="@+id/name"
+				android:hint="@string/destination_name" />
+			<CheckBox
+				android:id="@+id/timeline_enable"
+				android:layout_height="wrap_content"
+				android:layout_width="fill_parent"
+				android:text="@string/time_checkbox" />
+			<TextView
+				android:layout_height="wrap_content"
+				android:id="@+id/time"
+				android:layout_width="wrap_content"
+				android:gravity="center_horizontal"
+				android:layout_gravity="center_horizontal"
+			></TextView>
+
+			<info.staticfree.android.dearfutureself.TimelineEntry
+				android:id="@+id/timeline"
+				android:layout_width="fill_parent"
+				android:background="@drawable/timeline_background"
+				android:layout_height="70dip" />
+			<CheckBox
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:id="@+id/where_enable"
+				android:text="@string/where" />
+
+			<org.osmdroid.views.MapView android:id="@+id/map"
+				android:layout_width="fill_parent"
+				android:layout_height="100dip" />
+			<CheckBox android:text="CheckBox" android:id="@+id/checkBox1" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+
+		</LinearLayout>
+
+
+	</ScrollView>
 
 </LinearLayout>

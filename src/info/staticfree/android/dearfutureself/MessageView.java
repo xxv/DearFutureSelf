@@ -1,6 +1,7 @@
 package info.staticfree.android.dearfutureself;
 
 import info.staticfree.android.dearfutureself.content.Message;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -10,6 +11,8 @@ import android.support.v4.content.Loader;
 import android.widget.TextView;
 
 public class MessageView extends FragmentActivity implements LoaderCallbacks<Cursor> {
+
+	private int mMessageState;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -21,10 +24,20 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 	}
 
 	private void loadFromCursor(Cursor c){
-		if (c.moveToFirst()){
-			((TextView)findViewById(R.id.subject)).setText(c.getString(c.getColumnIndex(Message.SUBJECT)));
-			((TextView)findViewById(R.id.body)).setText(c.getString(c.getColumnIndex(Message.BODY)));
+		if (!c.moveToFirst()){
+			return;
 		}
+		((TextView)findViewById(R.id.subject)).setText(c.getString(c.getColumnIndex(Message.SUBJECT)));
+		((TextView)findViewById(R.id.body)).setText(c.getString(c.getColumnIndex(Message.BODY)));
+		mMessageState = c.getInt(c.getColumnIndex(Message.STATE));
+
+		// mark it as read
+		if (mMessageState == Message.STATE_NEW){
+			final ContentValues cv = new ContentValues();
+			cv.put(Message.STATE, Message.STATE_READ);
+			getContentResolver().update(getIntent().getData(), cv, null, null);
+		}
+
 	}
 
 	@Override
