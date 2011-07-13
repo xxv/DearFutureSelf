@@ -16,7 +16,13 @@
 			android:layout_height="fill_parent"
 			android:orientation="vertical"
 		>
-					<info.staticfree.android.dearfutureself.TimelineEntry
+			<TextView
+				android:id="@+id/timeline_value"
+				android:gravity="center_horizontal"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content" />
+				
+			<info.staticfree.android.dearfutureself.TimelineEntry
 				android:id="@+id/timeline"
 				android:layout_width="fill_parent"
 				android:background="@drawable/timeline_background"
@@ -34,7 +40,7 @@
 				android:hint="@string/hint_subject"
 				android:layout_height="wrap_content"
 				android:layout_width="fill_parent"
-                android:singleLine="true"
+				android:singleLine="true"
 				android:inputType="textEmailSubject|textAutoCorrect|textCapSentences|textImeMultiLine"
 				android:imeOptions="actionNext" />
 			<EditText

@@ -1,6 +1,7 @@
 package info.staticfree.android.dearfutureself;
 
 import info.staticfree.android.dearfutureself.content.Message;
+import info.staticfree.android.dearfutureself.content.MessageUtils.SetStateTask;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,12 +12,12 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
@@ -32,12 +33,11 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+    	getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        mListAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, null,
-        		new String[]{Message.SUBJECT, Message.BODY},
-        		new int[]{android.R.id.text1, android.R.id.text2}, 0);
+        mListAdapter = new MessageListAdapter(this);
 
         final ListView list = (ListView) findViewById(android.R.id.list);
         list.setAdapter(mListAdapter);
@@ -56,14 +56,16 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		return new CursorLoader(this, INBOX_URI, null,
+		setProgressBarIndeterminateVisibility(true);
+		return new CursorLoader(this, INBOX_URI, MessageListAdapter.PROJECTION,
 				null,
-				null, null);
+				null, Message.SORT_DEFAULT);
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
 		mListAdapter.swapCursor(c);
+		setProgressBarIndeterminateVisibility(false);
 	}
 
 	@Override
@@ -109,10 +111,13 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 			startActivity(new Intent(Intent.ACTION_EDIT, itemUri));
 			return true;
 
+		case R.id.delete:
+			new SetStateTask(this).execute(itemUri, Message.STATE_DELETED);
+			return true;
+
 			default:
 			return super.onContextItemSelected(item);
 		}
-
 	}
 
 	@Override

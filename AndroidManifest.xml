@@ -18,7 +18,7 @@
 	<!-- alarm -->
 	<uses-permission android:name="android.permission.VIBRATE" />
 
-    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true" android:theme="@android:style/Theme.Light">
     <!-- 
     	<activity android:name=".DestinationEdit" android:label="destination edit test">
             <intent-filter>
@@ -35,8 +35,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="MessageEdit" android:label="Edit Message">
-        	<intent-filter>
+        <activity android:name="MessageEdit" android:label="@string/edit_message">
+        	<intent-filter android:label="@string/new_message">
         		<action android:name="android.intent.action.INSERT" />
         		<category android:name="android.intent.category.DEFAULT" />
         		<data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
@@ -45,6 +45,11 @@
         		<action android:name="android.intent.action.EDIT" />
         		<category android:name="android.intent.category.DEFAULT" />
         		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
+        	</intent-filter>
+        	<intent-filter android:label="@string/app_name">
+        		<action android:name="android.intent.action.SEND" />
+        		<category android:name="android.intent.category.DEFAULT" />
+        		<data android:mimeType="text/plain" />
         	</intent-filter>
         </activity>
         

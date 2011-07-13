@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -21,7 +22,8 @@ public class MessageService extends Service {
 		ACTION_SHOW_NOTIFICATION = "info.staticfree.android.dearfutureself.ACTION_SHOW_NOTIFICATION",
 		ACTION_SCHEDULE_MESSAGE = "info.staticfree.android.dearfutureself.ACTION_SCHEDULE_MESSAGE";
 
-	private static final String[] PROJECTION = {Message._ID, Message.SUBJECT, Message.BODY};
+	private static final String[] PROJECTION = {Message._ID, Message.SUBJECT, Message.BODY, Message.DATE_ARRIVE};
+	private static final String[] COUNT_PROJECTION = {Message._ID, Message.STATE};
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
@@ -84,25 +86,56 @@ public class MessageService extends Service {
 		am.set(AlarmManager.RTC_WAKEUP, when, operation);
 	}
 
+	public int getCount(ContentResolver cr, int state){
+		final Cursor c = cr.query(Message.CONTENT_URI, COUNT_PROJECTION, Message.STATE+"=?", new String[]{String.valueOf(state)}, null);
+		c.moveToFirst();
+		final int count = c.getCount();
+		c.close();
+		return count;
+	}
+
 	public void showNotification(Uri message){
-		final Cursor c = getContentResolver().query(message, PROJECTION, null, null, null);
-		if (!c.moveToFirst()){
-			Log.e(TAG, "message " + message + " doesn't seem to actually exist");
-			return;
+		final ContentResolver cr = getContentResolver();
+
+		final Cursor c = cr.query(message, PROJECTION, null, null, null);
+		try{
+			if (!c.moveToFirst()){
+				Log.e(TAG, "message " + message + " doesn't seem to actually exist");
+
+				return;
+			}
+			String subject = c.getString(c.getColumnIndex(Message.SUBJECT));
+			final String body = c.getString(c.getColumnIndex(Message.BODY));
+			final long dateArrived = c.getLong(c.getColumnIndex(Message.DATE_ARRIVE));
+
+			// default if there's no subject
+			if (subject == null || "".equals(subject.trim())){
+				subject = getString(R.string.notification_message_arrived);
+			}
+
+			final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+			// the ticker text for the notification is just the subject.
+			final Notification notification = new Notification(R.drawable.ic_stat_mail_delayed, subject, dateArrived);
+			notification.flags = Notification.FLAG_AUTO_CANCEL;
+			notification.defaults = Notification.DEFAULT_ALL;
+
+
+			final int newCount = getCount(cr, Message.STATE_NEW);
+			if (newCount > 1){
+				final PendingIntent content = PendingIntent.getActivity(this, 0, new Intent(this, MessageList.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_UPDATE_CURRENT);
+				notification.setLatestEventInfo(this, getString(R.string.notification_messages_have_arrived), getString(R.string.you_have_x_new_messages, newCount), content);
+				notification.number = newCount;
+
+			}else{
+				final PendingIntent content = PendingIntent.getActivity(this, 0, new Intent(Intent.ACTION_VIEW, message).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_UPDATE_CURRENT);
+				notification.setLatestEventInfo(this, subject, body, content);
+			}
+
+			nm.notify(0, notification);
+		}finally{
+			c.close();
 		}
-		final String subject = c.getString(c.getColumnIndex(Message.SUBJECT));
-		final String body = c.getString(c.getColumnIndex(Message.BODY));
-
-		final long id = ContentUris.parseId(message);
-		final NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		final Notification notification = new Notification(R.drawable.ic_stat_mail_delayed, subject, System.currentTimeMillis());
-		notification.flags = Notification.FLAG_AUTO_CANCEL;
-		notification.defaults = Notification.DEFAULT_ALL;
-		final PendingIntent content = PendingIntent.getActivity(this, 0, new Intent(Intent.ACTION_VIEW, message).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_UPDATE_CURRENT);
-		notification.setLatestEventInfo(this, subject, body, content);
-		notification.tickerText="Your message has arrived.";
-
-		nm.notify((int) id, notification);
 	}
 
 }

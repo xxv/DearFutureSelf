@@ -2,6 +2,7 @@ package info.staticfree.android.dearfutureself;
 
 import info.staticfree.android.dearfutureself.TimelineEntry.OnChangeListener;
 import info.staticfree.android.dearfutureself.content.Message;
+import info.staticfree.android.dearfutureself.sharedtext.SharedTextExtractor;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -25,8 +26,13 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 	private String mAction;
 	private Uri mData;
 
-	EditText mTimeView;
-	TimelineEntry mTimelineEntry;
+	TextView mTimelineValueView;
+	private TimelineEntry mTimelineEntry;
+
+	private EditText mSubjectView;
+	private EditText mBodyView;
+
+	private final SharedTextExtractor mSharedTextExtractor = new SharedTextExtractor();
 
 	@Override
 	protected void onCreate(Bundle arg0) {
@@ -36,10 +42,13 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		final Button doneButton = (Button)findViewById(R.id.done);
 		doneButton.setOnClickListener(this);
 		((Button)findViewById(R.id.cancel)).setOnClickListener(this);
-		mTimeView = (EditText) findViewById(R.id.destination);
+		mTimelineValueView = (TextView) findViewById(R.id.timeline_value);
 		mTimelineEntry = (TimelineEntry)findViewById(R.id.timeline);
 
 		mTimelineEntry.setOnChangeListener(this);
+
+		mSubjectView = (EditText)findViewById(R.id.subject);
+		mBodyView = (EditText)findViewById(R.id.body);
 
 		final Intent intent = getIntent();
 		mAction = intent.getAction();
@@ -50,9 +59,20 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		}else if (Intent.ACTION_EDIT.equals(mAction)){
 			doneButton.setText("Done");
 			getSupportLoaderManager().initLoader(0, null, this);
+
+		}else if (Intent.ACTION_SEND.equals(mAction)){
+			final String body = intent.getStringExtra(Intent.EXTRA_TEXT);
+			if (mSharedTextExtractor.parse(body)){
+				mSubjectView.setText(mSharedTextExtractor.getSubject());
+				mBodyView.setText(mSharedTextExtractor.getBody());
+			}else{
+				mSubjectView.setText(intent.getStringExtra(Intent.EXTRA_SUBJECT));
+				mBodyView.setText(body);
+			}
+			mData = Message.CONTENT_URI;
 		}
 
-		mTimelineEntry.setTime(System.currentTimeMillis() + 10000);
+		mTimelineEntry.setTime(System.currentTimeMillis() + 60000);
 		mTimelineEntry.setRange(1000 * 60 * 60);
 		mTimelineEntry.setMinimumTime(System.currentTimeMillis());
 
@@ -71,7 +91,7 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		Uri message = null;
 		final ContentResolver cr = getContentResolver();
 
-		if (Intent.ACTION_INSERT.equals(mAction)){
+		if (Intent.ACTION_INSERT.equals(mAction) || Intent.ACTION_SEND.equals(mAction)){
 			final ContentValues cv = toCV();
 			cv.put(Message.STATE, Message.STATE_IN_TRANSIT);
 			message = cr.insert(mData, cv);
@@ -133,7 +153,7 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	public void onChange(long newValue, long min, long max) {
 		//mTimeView.setText(DateUtils.formatDateRange(this, min, max, DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_YEAR));
-		mTimeView.setText(DateUtils.getRelativeDateTimeString(this, newValue, DateUtils.MINUTE_IN_MILLIS, DateUtils.HOUR_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_YEAR));
+		mTimelineValueView.setText(DateUtils.getRelativeDateTimeString(this, newValue, DateUtils.MINUTE_IN_MILLIS, DateUtils.HOUR_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_YEAR));
 
 	}
 }

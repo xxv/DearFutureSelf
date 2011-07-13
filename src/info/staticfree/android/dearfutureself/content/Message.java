@@ -1,5 +1,7 @@
 package info.staticfree.android.dearfutureself.content;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.net.Uri;
 import edu.mit.mobile.android.content.ContentItem;
 import edu.mit.mobile.android.content.ProviderUtils;
@@ -16,7 +18,8 @@ public class Message implements ContentItem {
 		STATE_DRAFT      = 0,
 		STATE_IN_TRANSIT = 1,
 		STATE_NEW        = 2,
-		STATE_READ       = 3;
+		STATE_READ       = 3,
+		STATE_DELETED	 = 4;
 
 	@DBColumn(type=TextColumn.class, notnull = true)
 	public static final String SUBJECT = "subject";
@@ -44,6 +47,14 @@ public class Message implements ContentItem {
 
 	@DBColumn(type=TextColumn.class)
 	public static final String DESTINATION 		= "destination";
+
+	public static final String SORT_DEFAULT = DATE_ARRIVE + " DESC";
+
+	public static boolean setState(ContentResolver cr, Uri message, int state){
+		final ContentValues cv = new ContentValues();
+		cv.put(STATE, state);
+		return cr.update(message, cv, null, null) == 1;
+	}
 
 	public static final Uri
 		CONTENT_URI = ProviderUtils.toContentUri(MessageProvider.AUTHORITY, PATH);

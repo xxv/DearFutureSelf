@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, MessageList!</string>
     <string name="app_name">Dear Future Self...</string>
     <string name="hint_destination">Destination</string>
     <string name="hint_subject">Subject</string>
@@ -9,4 +8,10 @@
     <string name="time_checkbox">When</string>
     <string name="destination_name">Destination name</string>
     <string name="where">Where</string>
+    <string name="notification_message_arrived">Your message has arrived</string>
+    <string name="edit_message">Edit Message</string>
+    <string name="new_message">New Message</string>
+    <string name="sent_x">Sent %1$s</string>
+    <string name="notification_messages_have_arrived">Messages have arrived</string>
+    <string name="you_have_x_new_messages">You have %1$d new messages from yourself.</string>
 </resources>
