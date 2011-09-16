@@ -2,6 +2,7 @@ package info.staticfree.android.dearfutureself;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.drawable.Drawable;
@@ -10,6 +11,7 @@ import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewParent;
 
 public class TimelineEntry extends View {
 	long mStartTime, mEndTime;
@@ -17,16 +19,21 @@ public class TimelineEntry extends View {
 
 	private static final Paint PAINT_AXIS = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private static final Paint PAINT_MAJOR_TICKS = new Paint(Paint.ANTI_ALIAS_FLAG);
+	private static final Paint PAINT_MINOR_TICKS = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private static final Paint PAINT_DISABLED = new Paint(Paint.ANTI_ALIAS_FLAG);
 
 	private static final int MAJOR_TICK_SIZE = 20;
+	private static final int MINOR_TICK_SIZE = 10;
 	private final int X_SCALE = 60 * 60 * 1000;
+	private final int X_SCALE_SMALL = 15 * 60 * 1000;
 
 	private Drawable mMarker;
 
 	private OnChangeListener mOnChangeListener;
 
 	private int mWidth, mHeight;
+
+	private int mPaddingLeft, mPaddingRight, mPaddingTop, mPaddingBottom;
 
 	private float mScaleX;
 	private float mMultX;
@@ -41,18 +48,26 @@ public class TimelineEntry extends View {
 		STATE_SCALING = 2;
 	private int  mState = STATE_STILL;
 
+	private static final Paint RED_OUTLINE = new Paint();
 	static {
 		PAINT_AXIS.setARGB(192, 0, 0, 0);
 		PAINT_AXIS.setStyle(Style.STROKE);
 		PAINT_AXIS.setStrokeWidth(4);
 
-		PAINT_MAJOR_TICKS.setARGB(127, 0, 0, 0);
+		PAINT_MAJOR_TICKS.setARGB(128, 0, 0, 0);
 		PAINT_MAJOR_TICKS.setStyle(Style.STROKE);
 		PAINT_MAJOR_TICKS.setStrokeWidth(0);
 
-		PAINT_DISABLED.setARGB(127, 0, 0, 0);
+		PAINT_MINOR_TICKS.setARGB(92, 0, 0, 0);
+		PAINT_MINOR_TICKS.setStyle(Style.STROKE);
+		PAINT_MINOR_TICKS.setStrokeWidth(0);
+
+		PAINT_DISABLED.setARGB(96, 0, 0, 0);
 		PAINT_DISABLED.setStyle(Style.FILL);
 
+		RED_OUTLINE.setColor(Color.RED);
+		RED_OUTLINE.setStyle(Style.STROKE);
+		RED_OUTLINE.setStrokeWidth(0);
 	}
 
 	public TimelineEntry(Context context) {
@@ -144,36 +159,85 @@ public class TimelineEntry extends View {
 
 	@Override
 	protected int getSuggestedMinimumHeight() {
-		return 50;
+		return getBackground().getIntrinsicHeight();
+	}
+
+	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		int measuredWidth = View.MeasureSpec.getSize(widthMeasureSpec),
+			measuredHeight = View.MeasureSpec.getSize(widthMeasureSpec);
+
+		switch (View.MeasureSpec.getMode(widthMeasureSpec)){
+		case View.MeasureSpec.UNSPECIFIED:
+			measuredWidth = getBackground().getIntrinsicWidth();
+			break;
+		case View.MeasureSpec.AT_MOST:
+
+			break;
+		case View.MeasureSpec.EXACTLY:
+			// already set!
+			break;
+		}
+		switch (View.MeasureSpec.getMode(heightMeasureSpec)){
+		case View.MeasureSpec.UNSPECIFIED:
+			measuredHeight = 100;
+			break;
+		case View.MeasureSpec.AT_MOST:
+			measuredHeight = 100;
+			break;
+		case View.MeasureSpec.EXACTLY:
+			// already set!
+			break;
+		}
+		setMeasuredDimension(measuredWidth, measuredHeight);
 	}
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-		mWidth = w;
-		mHeight = h;
+		mPaddingLeft = getPaddingLeft();
+		mPaddingRight = getPaddingRight();
+		mPaddingBottom = getPaddingBottom();
+		mPaddingTop = getPaddingTop();
+		mWidth = w - (mPaddingLeft);
+		mHeight = h - (mPaddingTop);
 	}
 
 	@Override
 	protected void onDraw(Canvas canvas) {
 		final int w = mWidth;
 		final int h = mHeight;
+		final int hCenter = h/2;
 
 		final long timelineW = mEndTime - mStartTime;
 		mScaleX = getWidth() / (float)timelineW;
 		mMultX = (float)timelineW / getWidth();
 
 		canvas.save();
-		canvas.drawLine(0, h/2, w, h/2, PAINT_AXIS);
+		//canvas.clipRect(mPaddingLeft, mPaddingTop, w, h);
+		// main axis
+		canvas.drawLine(mPaddingLeft, h/2 + mPaddingTop, w, h/2 + mPaddingTop, PAINT_AXIS);
+		canvas.drawRect(mPaddingLeft, mPaddingTop, w, h, RED_OUTLINE);
 		//final float scaleX = w/(float)timelineW;
 		canvas.scale(mScaleX, 1, mScaleCenterX, 0);
 		canvas.translate(-mStartTime, h/2);
 
+		// show the disabled region
 		if (mMinTime > mStartTime){
-			canvas.drawRect(0, 0, mMinTime, h, PAINT_DISABLED);
+			canvas.drawRect(mPaddingLeft, -h, mMinTime, h, PAINT_DISABLED);
 		}
-		for (long xMarker = mStartTime - (mStartTime % X_SCALE); xMarker < mEndTime; xMarker += X_SCALE){
-			canvas.drawLine(xMarker, 0, xMarker, MAJOR_TICK_SIZE, PAINT_MAJOR_TICKS);
+
+//		// draw minor ticks
+//		for (long xMarker = mStartTime - (mStartTime % X_SCALE); xMarker < mEndTime; xMarker += X_SCALE){
+//			canvas.drawLine(xMarker, -MAJOR_TICK_SIZE, xMarker, MAJOR_TICK_SIZE, PAINT_MAJOR_TICKS);
+//		}
+		// draw minor ticks
+		for (long xMarker = mStartTime - (mStartTime % X_SCALE_SMALL); xMarker < mEndTime; xMarker += X_SCALE_SMALL){
+			if (xMarker % X_SCALE == 0){
+				canvas.drawLine(xMarker, -MAJOR_TICK_SIZE, xMarker, MAJOR_TICK_SIZE, PAINT_MAJOR_TICKS);
+			}else{
+				canvas.drawLine(xMarker, -MINOR_TICK_SIZE, xMarker, MINOR_TICK_SIZE, PAINT_MINOR_TICKS);
+			}
 		}
 		canvas.restore();
 
@@ -186,6 +250,16 @@ public class TimelineEntry extends View {
 		return (mEndTime - mStartTime) / 2 + mStartTime;
 	}
 
+	private void enforceMinimum(){
+		final long curTime = getTime();
+		// ensure that the start time is never below the min time
+		if (curTime < mMinTime){
+			final long minOffset = mMinTime - curTime;
+			mStartTime += minOffset;
+			mEndTime += minOffset;
+		}
+	}
+
 	/**
 	 * Sets the current time.
 	 *
@@ -196,6 +270,9 @@ public class TimelineEntry extends View {
 		final long offset = time - curtime;
 		mEndTime += offset;
 		mStartTime += offset;
+
+		enforceMinimum();
+
 		invalidate();
 		notifyListener();
 	}
@@ -214,6 +291,9 @@ public class TimelineEntry extends View {
 		final long offset = range - (mEndTime - mStartTime) / 2;
 		mEndTime += offset;
 		mStartTime -= offset;
+
+		enforceMinimum();
+
 		invalidate();
 		notifyListener();
 	}
@@ -225,8 +305,12 @@ public class TimelineEntry extends View {
 	 */
 	public void translateTimeline(float pixels){
 		final long offset = (long)(mMultX * pixels);
+
 		mStartTime += offset;
 		mEndTime += offset;
+
+		enforceMinimum();
+
 		invalidate();
 		notifyListener();
 	}
@@ -241,6 +325,9 @@ public class TimelineEntry extends View {
 		final long offset = (long)(mMultX * pixels) / 2;
 		mEndTime += offset;
 		mStartTime -= offset;
+
+		enforceMinimum();
+
 		invalidate();
 		notifyListener();
 	}
@@ -251,6 +338,16 @@ public class TimelineEntry extends View {
 		}
 	}
 
+    /**
+     * Tries to claim the user's drag motion, and requests disallowing any
+     * ancestors from stealing events in the drag.
+     */
+    private void attemptClaimDrag() {
+    	final ViewParent parent = getParent();
+        if (parent != null) {
+            parent.requestDisallowInterceptTouchEvent(true);
+        }
+    }
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -259,6 +356,7 @@ public class TimelineEntry extends View {
 
 		switch (action & MotionEvent.ACTION_MASK){
 		case MotionEvent.ACTION_DOWN:{
+			attemptClaimDrag();
 			mState = STATE_TRANSLATING;
 			mPrevX = event.getX(0);
 			//mScaleCenterX = mPrevX;
@@ -267,6 +365,8 @@ public class TimelineEntry extends View {
 		}
 
 		case MotionEvent.ACTION_POINTER_DOWN:{
+			attemptClaimDrag();
+
 			if (pointerID == 1){
 				mPrevX1 = event.getX(1);
 				mState = STATE_SCALING;
@@ -275,6 +375,8 @@ public class TimelineEntry extends View {
 		}
 
 		case MotionEvent.ACTION_MOVE:{
+
+
 			switch (mState){
 			case STATE_TRANSLATING:
 				translateTimeline(mPrevX - event.getX(0));
