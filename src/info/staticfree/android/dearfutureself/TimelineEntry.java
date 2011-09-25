@@ -62,7 +62,7 @@ public class TimelineEntry extends View {
 		PAINT_MINOR_TICKS.setStyle(Style.STROKE);
 		PAINT_MINOR_TICKS.setStrokeWidth(0);
 
-		PAINT_DISABLED.setARGB(96, 0, 0, 0);
+		PAINT_DISABLED.setARGB(48, 0, 0, 0);
 		PAINT_DISABLED.setStyle(Style.FILL);
 
 		RED_OUTLINE.setColor(Color.RED);
@@ -217,14 +217,14 @@ public class TimelineEntry extends View {
 		//canvas.clipRect(mPaddingLeft, mPaddingTop, w, h);
 		// main axis
 		canvas.drawLine(mPaddingLeft, h/2 + mPaddingTop, w, h/2 + mPaddingTop, PAINT_AXIS);
-		canvas.drawRect(mPaddingLeft, mPaddingTop, w, h, RED_OUTLINE);
+		//canvas.drawRect(mPaddingLeft, mPaddingTop, w, h, RED_OUTLINE);
 		//final float scaleX = w/(float)timelineW;
 		canvas.scale(mScaleX, 1, mScaleCenterX, 0);
 		canvas.translate(-mStartTime, h/2);
 
 		// show the disabled region
 		if (mMinTime > mStartTime){
-			canvas.drawRect(mPaddingLeft, -h, mMinTime, h, PAINT_DISABLED);
+			canvas.drawRect(mPaddingLeft, mPaddingTop - h/2, mMinTime, h/2, PAINT_DISABLED);
 		}
 
 //		// draw minor ticks
@@ -271,7 +271,7 @@ public class TimelineEntry extends View {
 		mEndTime += offset;
 		mStartTime += offset;
 
-		enforceMinimum();
+		//enforceMinimum();
 
 		invalidate();
 		notifyListener();
@@ -292,7 +292,7 @@ public class TimelineEntry extends View {
 		mEndTime += offset;
 		mStartTime -= offset;
 
-		enforceMinimum();
+		//enforceMinimum();
 
 		invalidate();
 		notifyListener();

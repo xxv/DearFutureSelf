@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">Dear Future Self...</string>
     <string name="hint_destination">Destination</string>
-    <string name="hint_subject">Subject</string>
-    <string name="hint_body">Message text</string>
+    <string name="hint_subject">Message</string>
+    <string name="hint_body">Details</string>
     <string name="send">Send</string>
     <string name="time_checkbox">When</string>
     <string name="destination_name">Destination name</string>

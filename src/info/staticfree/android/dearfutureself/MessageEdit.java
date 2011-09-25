@@ -98,7 +98,12 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 			success = message  != null;
 
 		}else if (Intent.ACTION_EDIT.equals(mAction)){
-			success = cr.update(mData, toCV(), null, null) != 0;
+			final ContentValues cv = toCV();
+			if (mTimelineEntry.getTime() > System.currentTimeMillis()){
+				cv.put(Message.STATE, Message.STATE_IN_TRANSIT);
+			}
+			success = cr.update(mData, cv, null, null) != 0;
+
 			message = mData;
 		}
 		if (success && message != null){
@@ -124,6 +129,7 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		if (c.moveToFirst()){
 			((TextView)findViewById(R.id.subject)).setText(c.getString(c.getColumnIndex(Message.SUBJECT)));
 			((TextView)findViewById(R.id.body)).setText(c.getString(c.getColumnIndex(Message.BODY)));
+			((TimelineEntry)findViewById(R.id.timeline)).setTime(c.getLong(c.getColumnIndex(Message.DATE_ARRIVE)));
 		}
 	}
 

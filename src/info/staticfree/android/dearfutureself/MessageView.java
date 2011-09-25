@@ -2,13 +2,18 @@ package info.staticfree.android.dearfutureself;
 
 import info.staticfree.android.dearfutureself.content.Message;
 import info.staticfree.android.dearfutureself.content.MessageUtils;
+import info.staticfree.android.dearfutureself.content.MessageUtils.SetStateTask;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.format.DateUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 public class MessageView extends FragmentActivity implements LoaderCallbacks<Cursor> {
@@ -53,6 +58,33 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> arg0) {
+
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.message_context, menu);
+		menu.findItem(R.id.view).setVisible(false); // already viewing!
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		final Uri message = getIntent().getData();
+
+		switch (item.getItemId()){
+		case R.id.edit:
+			startActivity(new Intent(Intent.ACTION_EDIT, message));
+			return true;
+
+		case R.id.delete:
+			new SetStateTask(this).execute(message, Message.STATE_DELETED);
+			return true;
+
+			default:
+				return super.onOptionsItemSelected(item);
+		}
 
 	}
 }

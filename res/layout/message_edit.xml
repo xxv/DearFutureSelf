@@ -33,7 +33,7 @@
 				android:layout_width="fill_parent"
 				android:inputType="textEmailAddress"
 				android:hint="@string/hint_destination"
-				android:imeOptions="actionNext" />
+				android:imeOptions="actionNext" android:visibility="gone"/>
 
 			<EditText
 				android:id="@+id/subject"
