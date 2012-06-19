@@ -59,7 +59,7 @@ public class MessageUtils {
 				msgs.put(jo);
 			}
 
-			final File output = new File(context.getExternalFilesDir(null), file);
+			final File output = new File(file);
 			output.createNewFile();
 			final FileOutputStream fos = new FileOutputStream(output);
 
@@ -84,7 +84,7 @@ public class MessageUtils {
 		final PackageManager pm = context.getPackageManager();
 
 	       try {
-	    	   final PackageInfo pi = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+			final PackageInfo pi = pm.getPackageInfo(context.getPackageName(), 0);
                jo.put(META_APP_VER_CODE, pi.versionCode);
                jo.put(META_APP_VER, pi.versionName);
 

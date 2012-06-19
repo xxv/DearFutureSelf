@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,7 @@ import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.content.ModernAsyncTask;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -34,11 +36,13 @@ import android.widget.TextView;
 
 public class ImportExport extends Activity implements OnClickListener {
 
-	public static final String
-		EXPORT_PREFIX = "dearfutureself-",
+	public static final String TAG = ImportExport.class.getSimpleName();
+
+	public static final String EXPORT_PREFIX = "dearfutureself-",
 		EXPORT_SUFFIX = ".json";
 
 	private static final Pattern DATE_STAMPED_FILE = Pattern.compile(Pattern.quote(EXPORT_PREFIX) + "(\\d+)"+ Pattern.quote(EXPORT_SUFFIX));
+
 	private ListView mBackupList;
 	private BackupAdapter mBackupAdapter;
 
@@ -52,6 +56,7 @@ public class ImportExport extends Activity implements OnClickListener {
 		final File externalDir = getExternalFilesDir(null);
 		mBackupAdapter = new BackupAdapter(this, android.R.layout.simple_list_item_1, externalDir);
 		mBackupList.setAdapter(mBackupAdapter);
+		mBackupAdapter.reload();
 
 	}
 
@@ -60,7 +65,9 @@ public class ImportExport extends Activity implements OnClickListener {
 		switch (v.getId()){
 
 		case R.id.export_msgs:
-			new ExportTask().execute(new File(getExternalFilesDir(null), EXPORT_PREFIX + System.currentTimeMillis() + EXPORT_PREFIX).getAbsolutePath());
+				new ExportTask().execute(new File(getExternalFilesDir(null), EXPORT_PREFIX
+						+ System.currentTimeMillis()
+						+ EXPORT_SUFFIX));
 			break;
 		}
 
@@ -68,10 +75,10 @@ public class ImportExport extends Activity implements OnClickListener {
 
 	private static class BackupAdapter implements ListAdapter {
 
-		private final ArrayList<BackupItem> mBackupItems = new ArrayList<BackupItem>();
+		private List<BackupItem> mBackupItems = new ArrayList<BackupItem>();
 
 		private final Context mContext;
-		private LayoutInflater mInflater;
+		private final LayoutInflater mInflater;
 
 		private final DataSetObservable mObservable = new DataSetObservable();
 
@@ -85,6 +92,7 @@ public class ImportExport extends Activity implements OnClickListener {
 
 			mBaseDir = baseDir;
 			mLayout = layoutId;
+			mInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
 		}
 
 		public void reload(){
@@ -115,7 +123,8 @@ public class ImportExport extends Activity implements OnClickListener {
 					return new Long(rhs.backupDate).compareTo(lhs.backupDate);
 				}
 			});
-
+			mBackupItems = Arrays.asList(backupItems);
+			mObservable.notifyChanged();
 		}
 
 		@Override
@@ -203,7 +212,7 @@ public class ImportExport extends Activity implements OnClickListener {
 		}
 	}
 
-	public class ExportTask extends ModernAsyncTask<String, Long, Boolean> {
+	public class ExportTask extends ModernAsyncTask<File, Long, Boolean> {
 
 		private ProgressDialog progress;
 
@@ -224,10 +233,13 @@ public class ImportExport extends Activity implements OnClickListener {
 		}
 
 		@Override
-		protected Boolean doInBackground(String... dest) {
+		protected Boolean doInBackground(File... dest) {
 			try {
-				MessageUtils.exportJson(ImportExport.this, dest[0]);
+				final File destination = dest[0];
+				destination.getParentFile().mkdirs();
 
+				MessageUtils.exportJson(ImportExport.this, destination.getAbsolutePath());
+				Log.i(TAG, "Exported to " + destination.getAbsolutePath());
 			} catch (final FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

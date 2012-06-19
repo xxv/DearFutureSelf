@@ -24,7 +24,6 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 	private int mMessageState;
 
 	private ActionBar mActionBar;
-	private ActionBar.Action mShareAction;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
