@@ -2,14 +2,18 @@ package info.staticfree.android.dearfutureself.sharedtext;
 
 import android.net.Uri;
 
+/**
+ * @author steve
+ *
+ */
 public class SharedTextExtractor implements SharedTextParser {
-	private static final SharedTextParser[] PARSERS = new SharedTextParser[]{new TwitterParser()};
+	private final SharedTextParser[] mParsers = new SharedTextParser[]{new TwitterParser()};
 
 	private SharedTextParser mSuccessfulParser;
 
 	public boolean parse(String sharedText){
 		boolean success = false;
-		for (final SharedTextParser parser: PARSERS){
+		for (final SharedTextParser parser: mParsers){
 			success = parser.parse(sharedText);
 			if (success){
 				mSuccessfulParser = parser;
