@@ -63,7 +63,7 @@
         	</intent-filter>
         </activity>
         
-            <activity android:name="ImportExport" android:label="Import/Export">
+            <activity android:name=".ImportExport" android:label="Import/Export">
                         	<intent-filter android:label="@string/new_message">
         		<action android:name="android.intent.action.SYNC" />
         		<category android:name="android.intent.category.DEFAULT" />
@@ -71,7 +71,7 @@
         	</intent-filter>
             </activity>
         
-        <service android:name="MessageService">
+        <service android:name=".MessageService">
         	<intent-filter>
         		<action android:name="info.staticfree.android.dearfutureself.ACTION_SHOW_NOTIFICATION" />
         		<action android:name="info.staticfree.android.dearfutureself.ACTION_SCHEDULE_MESSAGE" />

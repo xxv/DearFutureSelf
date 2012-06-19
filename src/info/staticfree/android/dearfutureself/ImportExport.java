@@ -30,11 +30,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class ImportExport extends Activity implements OnClickListener {
+public class ImportExport extends Activity implements OnClickListener, OnItemClickListener {
 
 	public static final String TAG = ImportExport.class.getSimpleName();
 
@@ -56,7 +59,9 @@ public class ImportExport extends Activity implements OnClickListener {
 		final File externalDir = getExternalFilesDir(null);
 		mBackupAdapter = new BackupAdapter(this, android.R.layout.simple_list_item_1, externalDir);
 		mBackupList.setAdapter(mBackupAdapter);
+		mBackupList.setOnItemClickListener(this);
 		mBackupAdapter.reload();
+
 
 	}
 
@@ -133,7 +138,7 @@ public class ImportExport extends Activity implements OnClickListener {
 		}
 
 		@Override
-		public Object getItem(int position) {
+		public BackupItem getItem(int position) {
 			return mBackupItems.get(position);
 		}
 
@@ -208,7 +213,8 @@ public class ImportExport extends Activity implements OnClickListener {
 
 		@Override
 		public String toString() {
-			return DateUtils.getRelativeDateTimeString(mContext, backupDate, DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, 0) + " (" + path + ")";
+			return (String) DateUtils.getRelativeDateTimeString(mContext, backupDate,
+					DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, 0);
 		}
 	}
 
@@ -260,5 +266,23 @@ public class ImportExport extends Activity implements OnClickListener {
 		protected void onPostExecute(Boolean result) {
 			progress.dismiss();
 		}
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> list, View arg1, int position, long id) {
+		final BackupItem item = mBackupAdapter.getItem(position);
+		try {
+			final int count = MessageUtils.importJson(this, item.path);
+			Toast.makeText(this, "Successfully imported " + count + " items.", Toast.LENGTH_LONG)
+					.show();
+
+		} catch (final IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (final JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }

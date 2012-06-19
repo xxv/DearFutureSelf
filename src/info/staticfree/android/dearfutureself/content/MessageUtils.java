@@ -1,16 +1,20 @@
 package info.staticfree.android.dearfutureself.content;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -20,6 +24,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.format.Time;
 import android.util.Log;
+import edu.mit.mobile.android.utils.StreamUtils;
 
 public class MessageUtils {
 	private static final String TAG = MessageUtils.class.getSimpleName();
@@ -74,8 +79,41 @@ public class MessageUtils {
 		doc.put(MESSAGES_KEY, msgs);
 	}
 
-	public static void importJson(Context context, String file){
-		// TODO implement me
+	/**
+	 * @param context
+	 * @param file
+	 * @return the number of imported messages
+	 * @throws IOException
+	 * @throws JSONException
+	 */
+	public static int importJson(Context context, File file) throws IOException, JSONException {
+		final FileInputStream fis = new FileInputStream(file);
+		final InputStreamReader isr = new InputStreamReader(fis);
+		try {
+			final String jsonString = StreamUtils.inputStreamToString(fis);
+			final JSONArray ja = new JSONArray(jsonString);
+			final int size = ja.length();
+			final ContentValues cvs[] = new ContentValues[size];
+			for (int i = 0; i < size; i++) {
+				cvs[i] = new ContentValues();
+				final JSONObject jo = ja.getJSONObject(i);
+
+				for (final Iterator<String> iter = jo.keys(); iter.hasNext();) {
+					final String key = iter.next();
+					if (Message._ID.equals(key)) {
+						continue;
+					}
+
+					cvs[i].put(key, jo.getString(key));
+				}
+			}
+			final ContentResolver cr = context.getContentResolver();
+			cr.delete(Message.CONTENT_URI, null, null);
+
+			return cr.bulkInsert(Message.CONTENT_URI, cvs);
+		} finally {
+			isr.close();
+		}
 	}
 
 	private static JSONObject exportMetadata(Context context) throws JSONException {
