@@ -55,7 +55,7 @@
         	</intent-filter>
         </activity>
         
-        <activity android:name="MessageView">
+        <activity android:name="MessageView" android:label="@string/message_from_your_past">
            	<intent-filter>
         		<action android:name="android.intent.action.VIEW" />
         		<category android:name="android.intent.category.DEFAULT" />
