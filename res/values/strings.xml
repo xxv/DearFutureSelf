@@ -16,4 +16,6 @@
     <string name="you_have_x_new_messages">You have %1$d new messages from yourself.</string>
     <string name="message_from_your_past">Message from your past</string>
     <string name="message_list_empty">You have no messages. What would you tell your tomorrow self?</string>
+    <string name="export_messages">Export</string>
+    <string name="import_messages">Import</string>
 </resources>

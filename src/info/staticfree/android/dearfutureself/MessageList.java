@@ -133,6 +133,9 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 			startActivity(new Intent(Intent.ACTION_INSERT, getIntent().getData()));
 			return true;
 
+		case R.id.import_export:
+			startActivity(new Intent(this, ImportExport.class));
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
