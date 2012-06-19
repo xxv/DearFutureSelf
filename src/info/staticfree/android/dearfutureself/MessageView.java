@@ -14,33 +14,56 @@ import android.support.v4.content.Loader;
 import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.widget.TextView;
+
+import com.markupartist.android.widget.ActionBar;
 
 public class MessageView extends FragmentActivity implements LoaderCallbacks<Cursor> {
 
 	private int mMessageState;
 
+	private ActionBar mActionBar;
+	private ActionBar.Action mShareAction;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.message_view);
 
 		getSupportLoaderManager().initLoader(0, null, this);
+
+		mActionBar = (ActionBar) findViewById(R.id.actionbar);
+		mActionBar.setTitle(getTitle());
+
+		getMenuInflater().inflate(R.menu.message_view_options, mActionBar.asMenu());
+
+	}
+
+	private Intent createShareIntent() {
+		final Intent i = new Intent(Intent.ACTION_SEND);
+		i.setType("text/plain");
+		i.putExtra(Intent.EXTRA_TEXT, ((TextView)findViewById(R.id.body)).getText());
+		i.putExtra(Intent.EXTRA_SUBJECT, ((TextView)findViewById(R.id.subject)).getText());
+		return Intent.createChooser(i, "Share with");
 	}
 
 	private void loadFromCursor(Cursor c){
 		if (!c.moveToFirst()){
 			return;
 		}
-		((TextView)findViewById(R.id.subject)).setText(c.getString(c.getColumnIndex(Message.SUBJECT)));
-		((TextView)findViewById(R.id.body)).setText(c.getString(c.getColumnIndex(Message.BODY)));
+		final String subject = c.getString(c.getColumnIndex(Message.SUBJECT));
+		final String body = c.getString(c.getColumnIndex(Message.BODY));
+		((TextView)findViewById(R.id.subject)).setText(subject);
+		((TextView)findViewById(R.id.body)).setText(body);
 
 		((TextView)findViewById(R.id.sent_time)).setText(getString(R.string.sent_x, DateUtils.getRelativeDateTimeString(this, c.getLong(c.getColumnIndex(Message.DATE_SENT)), DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, 0)));
 
 		mMessageState = c.getInt(c.getColumnIndex(Message.STATE));
 
-		if (mMessageState != Message.STATE_READ){
+		if (mMessageState == Message.STATE_NEW){
 			new MessageUtils.SetStateTask(this).execute(getIntent().getData(), Message.STATE_READ);
 		}
 
@@ -76,10 +99,16 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 		switch (item.getItemId()){
 		case R.id.edit:
 			startActivity(new Intent(Intent.ACTION_EDIT, message));
+			finish();
 			return true;
 
 		case R.id.delete:
 			new SetStateTask(this).execute(message, Message.STATE_DELETED);
+			finish();
+			return true;
+
+		case R.id.share:
+			startActivity(createShareIntent());
 			return true;
 
 			default:

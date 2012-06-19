@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<item android:id="@+id/edit" android:icon="@drawable/ic_act_edit" android:title="Edit Message" />
+	<item android:id="@+id/share" android:icon="@drawable/ic_act_share" android:title="Share Message" />
+
+</menu>

@@ -1,61 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:orientation="vertical"
->
-	<ScrollView
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		android:layout_weight="1"
-		android:fillViewport="true"
-	>
-		<LinearLayout
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent"
-			android:orientation="vertical"
-		>
-			<TextView
-				android:id="@+id/timeline_value"
-				android:gravity="center_horizontal"
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content" />
-				
-			<info.staticfree.android.dearfutureself.TimelineEntry
-				android:id="@+id/timeline"
-				android:layout_width="fill_parent"
-				android:background="@drawable/timeline_background"
-				android:layout_height="wrap_content" />
-			<AutoCompleteTextView
-				android:id="@+id/destination"
-				android:layout_height="wrap_content"
-				android:layout_width="fill_parent"
-				android:inputType="textEmailAddress"
-				android:hint="@string/hint_destination"
-				android:imeOptions="actionNext" android:visibility="gone"/>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/info.staticfree.android.dearfutureself"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
 
-			<EditText
-				android:id="@+id/subject"
-				android:hint="@string/hint_subject"
-				android:layout_height="wrap_content"
-				android:layout_width="fill_parent"
-				android:singleLine="true"
-				android:inputType="textEmailSubject|textAutoCorrect|textCapSentences|textImeMultiLine"
-				android:imeOptions="actionNext" />
-			<EditText
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				android:id="@+id/body"
-				android:hint="@string/hint_body"
-				android:minLines="3"
+    <com.markupartist.android.widget.ActionBar
+        android:id="@+id/actionbar"
+        style="@style/ActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:title="@string/app_name" />
 
-				android:gravity="top|left"
-				android:inputType="textMultiLine|textAutoCorrect|textCapSentences"
-				android:imeOptions="actionDone|flagNoEnterAction" />
-		</LinearLayout>
-	</ScrollView>
-	<LinearLayout
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:fillViewport="true" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/timeline_value"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal" />
+
+            <info.staticfree.android.dearfutureself.TimelineEntry
+                android:id="@+id/timeline"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/timeline_background" />
+
+            <AutoCompleteTextView
+                android:id="@+id/destination"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_destination"
+                android:imeOptions="actionNext"
+                android:inputType="textEmailAddress"
+                android:visibility="gone" />
+
+            <EditText
+                android:id="@+id/subject"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_subject"
+                android:imeOptions="actionNext"
+                android:inputType="textEmailSubject|textAutoCorrect|textCapSentences|textImeMultiLine"
+                android:singleLine="true" />
+
+            <EditText
+                android:id="@+id/body"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top|left"
+                android:hint="@string/hint_body"
+                android:imeOptions="actionDone|flagNoEnterAction"
+                android:inputType="textMultiLine|textAutoCorrect|textCapSentences"
+                android:minLines="3" />
+        </LinearLayout>
+    </ScrollView>
+    <!--
+     	<LinearLayout
 		android:orientation="horizontal"
 		android:layout_height="wrap_content"
 		android:layout_width="fill_parent"
@@ -75,5 +85,6 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content" />
 	</LinearLayout>
+    -->
 
 </LinearLayout>

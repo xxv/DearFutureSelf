@@ -1,29 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:orientation="vertical"
-	android:padding="10dip"
-	android:layout_marginBottom="10dip"
->
-	<TextView
-		android:id="@+id/subject"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:layout_height="wrap_content"
-		android:layout_width="wrap_content"
-		android:textStyle="bold"
-		
-	></TextView>
-	<TextView
-		android:id="@+id/sent_time"
-		android:layout_height="wrap_content"
-		android:layout_width="wrap_content" />
-	<TextView
-		android:id="@+id/body"
-		android:layout_marginTop="10dip"
-		android:layout_height="wrap_content"
-		android:layout_width="wrap_content"
-		android:autoLink="all"
-	></TextView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/info.staticfree.android.dearfutureself"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <com.markupartist.android.widget.ActionBar
+        android:id="@+id/actionbar"
+        style="@style/ActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:title="@string/app_name" />
+
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1" >
+
+        <LinearLayout
+            android:id="@+id/linearLayout1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dip"
+            android:orientation="vertical"
+            android:padding="10dip" >
+
+            <TextView
+                android:id="@+id/subject"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textStyle="bold" >
+            </TextView>
+
+            <TextView
+                android:id="@+id/sent_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" >
+            </TextView>
+
+            <TextView
+                android:id="@+id/body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dip"
+                android:autoLink="all" >
+            </TextView>
+        </LinearLayout>
+    </ScrollView>
+
 </LinearLayout>

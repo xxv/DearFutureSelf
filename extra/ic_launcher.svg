@@ -17,9 +17,9 @@
    height="72"
    width="72"
    sodipodi:docname="ic_launcher.svg"
-   inkscape:export-filename="/home/steve/p/DearFutureSelf/res/drawable-mdpi/ic_launcher.png"
-   inkscape:export-xdpi="60"
-   inkscape:export-ydpi="60">
+   inkscape:export-filename="/home/steve/p/DearFutureSelf/res/drawable-hdpi/ic_launcher.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -662,7 +662,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>

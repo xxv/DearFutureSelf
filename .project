@@ -32,6 +32,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>AndroidActionBar_src</name>
+			<type>2</type>
+			<locationURI>_android_AndroidActionBar_ab144c6e/src</locationURI>
+		</link>
+		<link>
 			<name>SimpleContentProvider_src</name>
 			<type>2</type>
 			<locationURI>_android_SimpleContentProvider_c8ba1158/src</locationURI>

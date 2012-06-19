@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="72"
+   height="72"
+   id="svg4455"
+   version="1.1"
+   inkscape:version="0.48.1 r9760"
+   sodipodi:docname="ic_act_cancel.svg"
+   inkscape:export-filename="/home/steve/p/DearFutureSelf/res/drawable-hdpi/ic_act_cancel.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4457" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="-73.980082"
+     inkscape:cy="-27.50268"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false" />
+  <metadata
+     id="metadata4460">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-980.36218)">
+    <g
+       transform="translate(-354.653,936.74418)"
+       id="Reply"
+       style="color:#000000;fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate">
+      <g
+         id="g3877"
+         style="color:#000000;fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate">
+        <path
+           style="color:#000000;fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           inkscape:connector-curvature="0"
+           d="m 410.22,59.5 h -39.131 c -1.614,0 -2.936,1.32 -2.936,2.935 v 28.369 c 0,1.615 1.321,2.936 2.936,2.936 h 1.405 v -4.96 c 0,-1.352 1.095,-2.446 2.446,-2.446 h 22.932 V 85.69 c 0,-0.98 0.586,-1.867 1.49,-2.251 0.903,-0.382 1.948,-0.189 2.653,0.491 l 7.274,7.023 c 0.477,0.463 0.746,1.097 0.746,1.76 0,0.359 -0.084,0.707 -0.232,1.026 h 0.416 c 1.613,0 2.934,-1.32 2.934,-2.936 V 62.434 C 413.154,60.82 411.833,59.5 410.22,59.5 z m -16.228,13.327 c -0.012,-0.016 -1.249,-1.576 -3.146,-1.576 -1.037,0 -2.496,0.689 -3.907,1.356 -1.642,0.776 -3.341,1.579 -4.878,1.579 -2.408,0 -4.535,-2.162 -4.625,-2.254 l 1.404,-1.362 c 0.451,0.46 1.912,1.659 3.221,1.659 1.098,0 2.595,-0.708 4.042,-1.391 1.606,-0.76 3.267,-1.544 4.743,-1.544 2.883,0 4.627,2.246 4.7,2.342 l -1.554,1.191 z m 0,-3.913 c -0.012,-0.016 -1.249,-1.576 -3.146,-1.576 -1.037,0 -2.496,0.689 -3.907,1.356 -1.642,0.776 -3.341,1.579 -4.878,1.579 -2.408,0 -4.535,-2.162 -4.625,-2.254 l 1.404,-1.362 c 0.451,0.46 1.912,1.659 3.221,1.659 1.098,0 2.595,-0.708 4.042,-1.391 1.606,-0.76 3.267,-1.544 4.743,-1.544 2.883,0 4.627,2.246 4.7,2.342 l -1.554,1.191 z m 14.271,4.281 c 0,1.076 -0.881,1.957 -1.957,1.957 h -6.848 c -1.076,0 -1.957,-0.881 -1.957,-1.957 v -6.848 c 0,-1.077 0.881,-1.957 1.957,-1.957 h 6.848 c 1.076,0 1.957,0.88 1.957,1.957 v 6.848 z"
+           id="path3879" />
+        <polygon
+           style="color:#000000;fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           points="407.591,92.712 400.318,85.689 400.318,88.779 374.941,88.779 374.941,96.604 400.318,96.604 400.318,99.736 "
+           id="polygon3881" />
+      </g>
+    </g>
+  </g>
+</svg>

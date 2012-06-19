@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="72"
+   height="72"
+   id="svg4455"
+   version="1.1"
+   inkscape:version="0.48.1 r9760"
+   sodipodi:docname="ic_act_share.svg"
+   inkscape:export-filename="/home/steve/p/DearFutureSelf/res/drawable-hdpi/ic_act_share.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4457" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="52.794063"
+     inkscape:cy="-27.50268"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false" />
+  <metadata
+     id="metadata4460">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-980.36218)">
+    <g
+       transform="translate(-654.474,936.74468)"
+       id="Share"
+       style="fill:#e6e6e6">
+      <g
+         id="g3561"
+         style="fill:#e6e6e6">
+        <circle
+           d="m 699.43601,92.592003 c 0,5.034628 -4.08137,9.115997 -9.116,9.115997 -5.03463,0 -9.116,-4.081369 -9.116,-9.115997 0,-5.034628 4.08137,-9.116 9.116,-9.116 5.03463,0 9.116,4.081372 9.116,9.116 z"
+           style="fill:#e6e6e6"
+           sodipodi:ry="9.1160002"
+           sodipodi:rx="9.1160002"
+           sodipodi:cy="92.592003"
+           sodipodi:cx="690.32001"
+           cx="690.32001"
+           cy="92.592003"
+           r="9.1160002"
+           id="circle3563" />
+        <path
+           style="fill:#e6e6e6"
+           inkscape:connector-curvature="0"
+           d="m 708.548,57.527 -17.537,7.397 5.012,2.558 -5.549,10.741 -5.551,-10.741 5.012,-2.558 -17.537,-7.397 -4.424,18.603 4.924,-2.513 6.27,12.139 c 2.305,-3.75 6.43,-6.258 11.152,-6.258 4.838,0 9.051,2.63 11.318,6.528 l 6.41,-12.409 4.926,2.513 -4.426,-18.603 z"
+           id="path3565" />
+      </g>
+    </g>
+  </g>
+</svg>

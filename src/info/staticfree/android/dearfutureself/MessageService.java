@@ -137,5 +137,4 @@ public class MessageService extends Service {
 			c.close();
 		}
 	}
-
 }

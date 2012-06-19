@@ -14,14 +14,15 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.format.DateUtils;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cursor>, OnClickListener, OnChangeListener {
+import com.markupartist.android.widget.ActionBar;
+
+public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cursor>, OnChangeListener {
 
 	private String mAction;
 	private Uri mData;
@@ -34,14 +35,13 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 
 	private final SharedTextExtractor mSharedTextExtractor = new SharedTextExtractor();
 
+	private ActionBar mActionBar;
+
 	@Override
 	protected void onCreate(Bundle arg0) {
 		super.onCreate(arg0);
 		setContentView(R.layout.message_edit);
 
-		final Button doneButton = (Button)findViewById(R.id.done);
-		doneButton.setOnClickListener(this);
-		((Button)findViewById(R.id.cancel)).setOnClickListener(this);
 		mTimelineValueView = (TextView) findViewById(R.id.timeline_value);
 		mTimelineEntry = (TimelineEntry)findViewById(R.id.timeline);
 
@@ -50,14 +50,20 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		mSubjectView = (EditText)findViewById(R.id.subject);
 		mBodyView = (EditText)findViewById(R.id.body);
 
+		mActionBar = (ActionBar) findViewById(R.id.actionbar);
+
+
+		getMenuInflater().inflate(R.menu.message_edit_options, mActionBar.asMenu());
+
 		final Intent intent = getIntent();
 		mAction = intent.getAction();
 		mData = intent.getData();
 
 		if (Intent.ACTION_INSERT.equals(mAction)){
+			setTitle(R.string.new_message);
 
 		}else if (Intent.ACTION_EDIT.equals(mAction)){
-			doneButton.setText("Done");
+			setSendIndicator(false);
 			getSupportLoaderManager().initLoader(0, null, this);
 
 		}else if (Intent.ACTION_SEND.equals(mAction)){
@@ -72,10 +78,25 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 			mData = Message.CONTENT_URI;
 		}
 
+		mActionBar.setTitle(getTitle());
+
 		mTimelineEntry.setTime(System.currentTimeMillis() + 60000);
 		mTimelineEntry.setRange(1000 * 60 * 60);
 		mTimelineEntry.setMinimumTime(System.currentTimeMillis());
 
+	}
+
+	private boolean mSendIndicator = true;
+
+	private void setSendIndicator(boolean send){
+		if (send == mSendIndicator){
+			return;
+		}
+		mSendIndicator = send;
+
+		final Menu actionMenu = mActionBar.asMenu();
+		actionMenu.findItem(R.id.send).setVisible(send);
+		actionMenu.findItem(R.id.save).setVisible(!send);
 	}
 
 	private ContentValues toCV(){
@@ -86,27 +107,44 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		return cv;
 	}
 
+	private boolean validate(){
+		if (mSubjectView.getText().length() == 0){
+			mSubjectView.setError("Please enter a message");
+			mSubjectView.requestFocus();
+			return false;
+		}
+		return true;
+	}
+
 	private boolean sendOrEdit(){
 		boolean success = false;
 		Uri message = null;
 		final ContentResolver cr = getContentResolver();
 
+		if (!validate()){
+			return false;
+		}
+
+		boolean send = false;
+
+		final ContentValues cv = toCV();
+
 		if (Intent.ACTION_INSERT.equals(mAction) || Intent.ACTION_SEND.equals(mAction)){
-			final ContentValues cv = toCV();
 			cv.put(Message.STATE, Message.STATE_IN_TRANSIT);
+			send = true;
 			message = cr.insert(mData, cv);
 			success = message  != null;
 
 		}else if (Intent.ACTION_EDIT.equals(mAction)){
-			final ContentValues cv = toCV();
 			if (mTimelineEntry.getTime() > System.currentTimeMillis()){
 				cv.put(Message.STATE, Message.STATE_IN_TRANSIT);
+				send = true;
 			}
 			success = cr.update(mData, cv, null, null) != 0;
 
 			message = mData;
 		}
-		if (success && message != null){
+		if (success && message != null && send){
 			startService(new Intent(MessageService.ACTION_SCHEDULE_MESSAGE, message));
 		}
 		return success;
@@ -134,9 +172,10 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 	}
 
 	@Override
-	public void onClick(View v) {
-		switch (v.getId()){
-		case R.id.done:
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()){
+		case R.id.save:
+		case R.id.send:
 			if(sendOrEdit()){
 				if (Intent.ACTION_INSERT.equals(mAction)){
 					Toast.makeText(this, "Sent!", Toast.LENGTH_SHORT).show();
@@ -146,19 +185,25 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 			}else{
 				Toast.makeText(this, "error sending.", Toast.LENGTH_LONG).show();
 			}
-			break;
+			return true;
 
 		case R.id.cancel:
 			setResult(RESULT_CANCELED);
 			finish();
-			break;
+			return true;
 
+		default:
+			return super.onOptionsItemSelected(item);
 		}
 	}
 
 	@Override
 	public void onChange(long newValue, long min, long max) {
-		//mTimeView.setText(DateUtils.formatDateRange(this, min, max, DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_YEAR));
+		if (newValue >= System.currentTimeMillis()){
+			setSendIndicator(true);
+		}else{
+			setSendIndicator(false);
+		}
 		mTimelineValueView.setText(DateUtils.getRelativeDateTimeString(this, newValue, DateUtils.MINUTE_IN_MILLIS, DateUtils.HOUR_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_YEAR));
 
 	}

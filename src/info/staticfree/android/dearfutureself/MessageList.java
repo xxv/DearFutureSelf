@@ -14,6 +14,7 @@ import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -22,18 +23,22 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
+import com.markupartist.android.widget.ActionBar;
+
 
 public class MessageList extends FragmentActivity implements LoaderCallbacks<Cursor>, OnClickListener, OnItemClickListener {
 
 	private CursorAdapter mListAdapter;
 
-	private static final Uri INBOX_URI = Message.CONTENT_URI.buildUpon().
+	private ActionBar mActionBar;
+
+	public static final Uri INBOX_URI = Message.CONTENT_URI.buildUpon().
 		appendQueryParameter(Message.STATE, String.valueOf(Message.STATE_NEW)).
 		appendQueryParameter("|"+Message.STATE, String.valueOf(Message.STATE_READ)).build();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+    	requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
@@ -41,23 +46,27 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
         final ListView list = (ListView) findViewById(android.R.id.list);
         list.setAdapter(mListAdapter);
+        list.setEmptyView(findViewById(android.R.id.empty));
         list.setOnItemClickListener(this);
         list.setOnCreateContextMenuListener(this);
 
+        mActionBar = (ActionBar) findViewById(R.id.actionbar);
+        getMenuInflater().inflate(R.menu.message_list_options, mActionBar.asMenu());
+
         final Intent intent = getIntent();
         if (intent.getData() == null){
-        	intent.setData(Message.CONTENT_URI);
+        	intent.setData(INBOX_URI);
         }
         setIntent(intent);
 
-        findViewById(R.id.new_message).setOnClickListener(this);
         getSupportLoaderManager().initLoader(0, null, this);
     }
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		setProgressBarIndeterminateVisibility(true);
-		return new CursorLoader(this, INBOX_URI, MessageListAdapter.PROJECTION,
+		mActionBar.setProgressBarVisibility(View.VISIBLE);
+
+		return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION,
 				null,
 				null, Message.SORT_DEFAULT);
 	}
@@ -65,7 +74,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
 		mListAdapter.swapCursor(c);
-		setProgressBarIndeterminateVisibility(false);
+		mActionBar.setProgressBarVisibility(View.GONE);
 	}
 
 	@Override
@@ -77,9 +86,6 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()){
-		case R.id.new_message:
-			startActivity(new Intent(Intent.ACTION_INSERT, Message.CONTENT_URI));
-			break;
 		}
 	}
 
@@ -121,8 +127,27 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 	}
 
 	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()){
+		case R.id.add:
+			startActivity(new Intent(Intent.ACTION_INSERT, getIntent().getData()));
+			return true;
+
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
 		startActivity(new Intent(Intent.ACTION_VIEW, ContentUris.withAppendedId(getIntent().getData(), id)));
 
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.message_list_options, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+
 }
