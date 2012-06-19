@@ -11,15 +11,15 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="0.48.1 r9760"
+   inkscape:version="0.48.3.1 r9886"
    version="1.1"
    id="svg2"
    height="72"
    width="72"
    sodipodi:docname="ic_launcher.svg"
-   inkscape:export-filename="/home/steve/p/DearFutureSelf/res/drawable-hdpi/ic_launcher.png"
-   inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   inkscape:export-filename="../res/drawable-xhdpi/ic_launcher.png"
+   inkscape:export-xdpi="120"
+   inkscape:export-ydpi="120">
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
