@@ -6,6 +6,7 @@ import info.staticfree.android.dearfutureself.content.MessageUtils.SetStateTask;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -14,7 +15,6 @@ import android.support.v4.content.Loader;
 import android.text.format.DateUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.widget.TextView;
 
 import com.markupartist.android.widget.ActionBar;
@@ -28,17 +28,18 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.message_view);
 
 		getSupportLoaderManager().initLoader(0, null, this);
 
-		mActionBar = (ActionBar) findViewById(R.id.actionbar);
-		mActionBar.setTitle(getTitle());
-
-		getMenuInflater().inflate(R.menu.message_view_options, mActionBar.asMenu());
-
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			mActionBar = (ActionBar) findViewById(R.id.actionbar);
+			mActionBar.setTitle(getTitle());
+			final Menu menu = mActionBar.asMenu();
+			getMenuInflater().inflate(R.menu.message_view_options, menu);
+			menu.findItem(R.id.view).setVisible(false); // already viewing!
+		}
 	}
 
 	private Intent createShareIntent() {
@@ -86,7 +87,7 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		getMenuInflater().inflate(R.menu.message_context, menu);
+		getMenuInflater().inflate(R.menu.message_view_options, menu);
 		menu.findItem(R.id.view).setVisible(false); // already viewing!
 		return true;
 	}

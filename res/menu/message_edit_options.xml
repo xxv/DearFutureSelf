@@ -2,8 +2,8 @@
 <menu
 	xmlns:android="http://schemas.android.com/apk/res/android"
 >
-	<item android:id="@+id/send" android:icon="@drawable/ic_act_send" android:title="Send"  />
-	<item android:id="@+id/save" android:icon="@drawable/ic_act_save" android:title="Save" android:visible="false" />
-	<item android:id="@+id/cancel" android:icon="@drawable/ic_act_cancel" android:title="Cancel" />
+	<item android:id="@+id/send" android:icon="@drawable/ic_act_send" android:title="@string/send"  android:showAsAction="always|withText"/>
+	<item android:id="@+id/save" android:icon="@drawable/ic_act_save" android:title="@string/save" android:visible="false" android:showAsAction="always|withText"/>
+	<item android:id="@+id/cancel" android:icon="@drawable/ic_act_cancel" android:title="@string/cancel" android:showAsAction="ifRoom|withText"/>
 
 </menu>

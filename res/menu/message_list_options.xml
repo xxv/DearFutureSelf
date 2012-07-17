@@ -2,6 +2,6 @@
 <menu
 	xmlns:android="http://schemas.android.com/apk/res/android"
 >
-	<item android:id="@+id/add" android:icon="@drawable/ic_act_add" android:title="New Message" />
-	<item android:id="@+id/import_export" android:icon="@android:drawable/ic_menu_upload" android:title="Import/Export" />
+	<item android:id="@+id/add" android:icon="@drawable/ic_act_add" android:title="@string/new_message" android:titleCondensed="@string/new_message_condensed" android:showAsAction="always|withText"/>
+	<item android:id="@+id/import_export" android:icon="@android:drawable/ic_menu_upload" android:title="@string/import_export" android:showAsAction="ifRoom|withText"/>
 </menu>

@@ -6,6 +6,7 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -38,7 +39,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	requestWindowFeature(Window.FEATURE_NO_TITLE);
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
@@ -50,8 +51,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         list.setOnItemClickListener(this);
         list.setOnCreateContextMenuListener(this);
 
-        mActionBar = (ActionBar) findViewById(R.id.actionbar);
-        getMenuInflater().inflate(R.menu.message_list_options, mActionBar.asMenu());
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			mActionBar = (ActionBar) findViewById(R.id.actionbar);
+			getMenuInflater().inflate(R.menu.message_list_options, mActionBar.asMenu());
+		}
 
         final Intent intent = getIntent();
         if (intent.getData() == null){
@@ -64,7 +67,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mActionBar.setProgressBarVisibility(View.VISIBLE);
+		setProgressBarVisibility(true);
+		if (mActionBar != null) {
+			mActionBar.setProgressBarVisibility(View.VISIBLE);
+		}
 
 		return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION,
 				null,
@@ -74,7 +80,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
 		mListAdapter.swapCursor(c);
-		mActionBar.setProgressBarVisibility(View.GONE);
+		if (mActionBar != null) {
+			mActionBar.setProgressBarVisibility(View.GONE);
+		}
+		setProgressBarVisibility(false);
 	}
 
 	@Override
@@ -92,7 +101,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		getMenuInflater().inflate(R.menu.message_context, menu);
+		getMenuInflater().inflate(R.menu.message_view_options, menu);
 		super.onCreateContextMenu(menu, v, menuInfo);
 	}
 
@@ -125,6 +134,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 			return super.onContextItemSelected(item);
 		}
 	}
+
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {

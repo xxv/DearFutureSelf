@@ -3,17 +3,22 @@ package info.staticfree.android.dearfutureself;
 import info.staticfree.android.dearfutureself.TimelineEntry.OnChangeListener;
 import info.staticfree.android.dearfutureself.content.Message;
 import info.staticfree.android.dearfutureself.sharedtext.SharedTextExtractor;
+
+import java.lang.reflect.InvocationTargetException;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -24,6 +29,7 @@ import com.markupartist.android.widget.ActionBar;
 
 public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cursor>, OnChangeListener {
 
+	private static final String TAG = MessageEdit.class.getSimpleName();
 	private String mAction;
 	private Uri mData;
 
@@ -50,10 +56,10 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		mSubjectView = (EditText)findViewById(R.id.subject);
 		mBodyView = (EditText)findViewById(R.id.body);
 
-		mActionBar = (ActionBar) findViewById(R.id.actionbar);
-
-
-		getMenuInflater().inflate(R.menu.message_edit_options, mActionBar.asMenu());
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			mActionBar = (ActionBar) findViewById(R.id.actionbar);
+			getMenuInflater().inflate(R.menu.message_edit_options, mActionBar.asMenu());
+		}
 
 		final Intent intent = getIntent();
 		mAction = intent.getAction();
@@ -78,7 +84,9 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 			mData = Message.CONTENT_URI;
 		}
 
-		mActionBar.setTitle(getTitle());
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			mActionBar.setTitle(getTitle());
+		}
 
 		mTimelineEntry.setTime(System.currentTimeMillis() + 60000);
 		mTimelineEntry.setRange(1000 * 60 * 60);
@@ -94,9 +102,23 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		}
 		mSendIndicator = send;
 
-		final Menu actionMenu = mActionBar.asMenu();
-		actionMenu.findItem(R.id.send).setVisible(send);
-		actionMenu.findItem(R.id.save).setVisible(!send);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			final Menu actionMenu = mActionBar.asMenu();
+			actionMenu.findItem(R.id.send).setVisible(send);
+			actionMenu.findItem(R.id.save).setVisible(!send);
+		} else {
+			try {
+				FragmentActivity.class.getMethod("invalidateOptionsMenu").invoke(this);
+			} catch (final NoSuchMethodException e) {
+				Log.e(TAG, "version error", e);
+			} catch (final IllegalArgumentException e) {
+				Log.e(TAG, "version error", e);
+			} catch (final IllegalAccessException e) {
+				Log.e(TAG, "version error", e);
+			} catch (final InvocationTargetException e) {
+				Log.e(TAG, "version error", e);
+			}
+		}
 	}
 
 	private ContentValues toCV(){
@@ -172,6 +194,14 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 	}
 
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		getMenuInflater().inflate(R.menu.message_edit_options, menu);
+
+		return true;
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()){
 		case R.id.save:
@@ -195,6 +225,16 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		super.onPrepareOptionsMenu(menu);
+
+		menu.findItem(R.id.send).setVisible(mSendIndicator);
+		menu.findItem(R.id.save).setVisible(!mSendIndicator);
+
+		return true;
 	}
 
 	@Override

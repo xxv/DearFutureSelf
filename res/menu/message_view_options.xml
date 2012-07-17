@@ -1,8 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-	xmlns:android="http://schemas.android.com/apk/res/android">
-	
-	<item android:id="@+id/edit" android:icon="@drawable/ic_act_edit" android:title="Edit Message" />
-	<item android:id="@+id/share" android:icon="@drawable/ic_act_share" android:title="Share Message" />
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/view"
+        android:icon="@android:drawable/ic_menu_view"
+        android:showAsAction="never"
+        android:title="@string/view"/>
+    <item
+        android:id="@+id/edit"
+        android:icon="@drawable/ic_act_edit"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/edit_message"
+        android:titleCondensed="@string/edit_message_condensed"/>
+    <item
+        android:id="@+id/share"
+        android:icon="@drawable/ic_act_share"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/share_message"/>
+    <item
+        android:id="@+id/delete"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:showAsAction="withText"
+        android:title="@string/delete"/>
 
 </menu>

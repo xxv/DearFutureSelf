@@ -1,26 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res/info.staticfree.android.dearfutureself"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <com.markupartist.android.widget.ActionBar
+    <include
         android:id="@+id/actionbar"
-        style="@style/ActionBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:title="@string/app_name" />
+        layout="@layout/action_bar" />
 
     <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="0dip"
         android:layout_weight="1"
         android:fillViewport="true" >
 
         <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical" >
 
             <TextView
