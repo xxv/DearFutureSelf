@@ -125,7 +125,7 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
 
 				@Override
 				public int compare(BackupItem lhs, BackupItem rhs) {
-					return new Long(rhs.backupDate).compareTo(lhs.backupDate);
+					return Long.valueOf(rhs.backupDate).compareTo(lhs.backupDate);
 				}
 			});
 			mBackupItems = Arrays.asList(backupItems);
