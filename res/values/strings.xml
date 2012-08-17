@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">Dear Future Self,</string>
     <string name="hint_destination">Destination</string>
     <string name="hint_subject">Message</string>
@@ -26,5 +27,9 @@
     <string name="share_message">Share Message</string>
     <string name="delete">Delete</string>
     <string name="view">View</string>
-    
+    <string name="permission_read_dear_future_self_messages_label">Read Dear Future Self messages</string>
+    <string name="permission_read_dear_future_self_messages_description">Allows app to read Dear Future Self messages</string>
+    <string name="permission_write_dear_future_self_messages_label">Access all Dear Future Self messages</string>
+    <string name="permission_write_dear_future_self_messages_description">Allows app to store and retrieve all Dear Future Self messages</string>
+
 </resources>

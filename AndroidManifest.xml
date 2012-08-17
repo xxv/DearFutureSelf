@@ -1,93 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="info.staticfree.android.dearfutureself"
-      android:versionCode="1"
-      android:versionName="1.0" android:installLocation="internalOnly">
-	<supports-screens android:anyDensity="true"  />
+    package="info.staticfree.android.dearfutureself"
+    android:installLocation="internalOnly"
+    android:versionCode="1"
+    android:versionName="1.0" >
 
-	<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="15"  />
+    <supports-screens android:anyDensity="true" />
 
-	<!-- OSMDroid permissions -->
-<!-- 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> 
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="16" />
+
+    <!-- OSMDroid permissions -->
+    <!--
+     	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> 
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
- -->
- 
- 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-	<!-- alarm -->
-	<uses-permission android:name="android.permission.VIBRATE" />
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    -->
 
-    <application android:icon="@drawable/ic_launcher" android:label="@string/app_name" android:theme="@style/DearFutureSelfTheme" android:hardwareAccelerated="true">
-    <!-- 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- alarm -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <permission
+        android:name="info.staticfree.android.dearfutureself.READ_MESSAGES"
+        android:description="@string/permission_read_dear_future_self_messages_description"
+        android:label="@string/permission_read_dear_future_self_messages_label" />
+    <permission
+        android:name="info.staticfree.android.dearfutureself.WRITE_MESSAGES"
+        android:description="@string/permission_write_dear_future_self_messages_description"
+        android:label="@string/permission_write_dear_future_self_messages_label" />
+
+    <application
+        android:hardwareAccelerated="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/DearFutureSelfTheme" >
+
+        <!--
     	<activity android:name=".DestinationEdit" android:label="destination edit test">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>    		
     	</activity>
-    	 -->
-        <activity android:name=".MessageList"
-        	android:launchMode="singleTop"
-                  android:label="@string/app_name">
+        -->
+        <activity
+            android:name=".MessageList"
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="MessageEdit" android:label="@string/edit_message">
-        	<intent-filter android:label="@string/new_message">
-        		<action android:name="android.intent.action.INSERT" />
-        		<category android:name="android.intent.category.DEFAULT" />
-        		<data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
-        	</intent-filter>
-        	<intent-filter>
-        		<action android:name="android.intent.action.EDIT" />
-        		<category android:name="android.intent.category.DEFAULT" />
-        		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
-        	</intent-filter>
-        	<intent-filter android:label="@string/app_name">
-        		<action android:name="android.intent.action.SEND" />
-        		<category android:name="android.intent.category.DEFAULT" />
-        		<data android:mimeType="text/plain" />
-        	</intent-filter>
+        <activity
+            android:name="MessageEdit"
+            android:label="@string/edit_message"
+            android:permission="info.staticfree.android.dearfutureself.WRITE_MESSAGES" >
+            <intent-filter android:label="@string/new_message" >
+                <action android:name="android.intent.action.INSERT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
+            </intent-filter>
+            <intent-filter android:label="@string/app_name" >
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
-        
-        <activity android:name="MessageView" android:label="@string/message_from_your_past">
-           	<intent-filter>
-        		<action android:name="android.intent.action.VIEW" />
-        		<category android:name="android.intent.category.DEFAULT" />
-        		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
-        	</intent-filter>
+        <activity
+            android:name="MessageView"
+            android:label="@string/message_from_your_past"
+            android:permission="info.staticfree.android.dearfutureself.READ_MESSAGES" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
+            </intent-filter>
         </activity>
-        
-            <activity android:name=".ImportExport" android:label="Import/Export">
-                        	<intent-filter android:label="@string/new_message">
-        		<action android:name="android.intent.action.SYNC" />
-        		<category android:name="android.intent.category.DEFAULT" />
-        		<data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
-        	</intent-filter>
-            </activity>
-        
-        <service android:name=".MessageService">
-        	<intent-filter>
-        		<action android:name="info.staticfree.android.dearfutureself.ACTION_SHOW_NOTIFICATION" />
-        		<action android:name="info.staticfree.android.dearfutureself.ACTION_SCHEDULE_MESSAGE" />
-        		<data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
-        		<data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
-        	</intent-filter>        	
+        <activity
+            android:name=".ImportExport"
+            android:exported="false"
+            android:label="Import/Export" >
+            <intent-filter android:label="@string/new_message" >
+                <action android:name="info.staticfree.android.dearfutureself.IMPORT_EXPORT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".MessageService"
+            android:permission="info.staticfree.android.dearfutureself.WRITE_MESSAGES" >
+            <intent-filter>
+                <action android:name="info.staticfree.android.dearfutureself.ACTION_SHOW_NOTIFICATION" />
+                <action android:name="info.staticfree.android.dearfutureself.ACTION_SCHEDULE_MESSAGE" />
+
+                <data android:mimeType="vnd.android.cursor.item/vnd.info.staticfree.android.dearfutureself.message" />
+                <data android:mimeType="vnd.android.cursor.dir/vnd.info.staticfree.android.dearfutureself.message" />
+            </intent-filter>
         </service>
-        <receiver android:name=".BootReceiver">
+
+        <receiver android:name=".BootReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-        	    
-        	</intent-filter>
+            </intent-filter>
         </receiver>
-        
-        <provider android:authorities="info.staticfree.android.dearfutureself" android:name=".content.MessageProvider" />
 
+        <provider
+            android:name=".content.MessageProvider"
+            android:authorities="info.staticfree.android.dearfutureself"
+            android:exported="true"
+            android:readPermission="info.staticfree.android.dearfutureself.READ_MESSAGES"
+            android:writePermission="info.staticfree.android.dearfutureself.WRITE_MESSAGES" />
     </application>
+
 </manifest>
