@@ -87,9 +87,10 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			mActionBar.setTitle(getTitle());
 		}
-
+		// default time is now plus 1 minute. This lets you easily send a message just a nudge in
+		// the future.
 		mTimelineEntry.setTime(System.currentTimeMillis() + 60000);
-		mTimelineEntry.setRange(1000 * 60 * 60);
+		mTimelineEntry.setRange(1000 * 60 * 60 * 5);
 		mTimelineEntry.setMinimumTime(System.currentTimeMillis());
 
 	}

@@ -22,6 +22,9 @@ public class TimelineEntry extends View {
 	private static final Paint PAINT_MINOR_TICKS = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private static final Paint PAINT_DISABLED = new Paint(Paint.ANTI_ALIAS_FLAG);
 
+	// ms → s → m → h → d
+	private static final int DEFAULT_SCALE = 1000 * 60 * 60 * 24;
+
 	private static final int MAJOR_TICK_SIZE = 20;
 	private static final int MINOR_TICK_SIZE = 10;
 	private final int X_SCALE = 60 * 60 * 1000;
@@ -54,15 +57,15 @@ public class TimelineEntry extends View {
 	static {
 		PAINT_AXIS.setARGB(192, 0, 0, 0);
 		PAINT_AXIS.setStyle(Style.STROKE);
-		PAINT_AXIS.setStrokeWidth(4);
+		PAINT_AXIS.setStrokeWidth(2);
 
 		PAINT_MAJOR_TICKS.setARGB(128, 0, 0, 0);
 		PAINT_MAJOR_TICKS.setStyle(Style.STROKE);
-		PAINT_MAJOR_TICKS.setStrokeWidth(0);
+		PAINT_MAJOR_TICKS.setStrokeWidth(2);
 
 		PAINT_MINOR_TICKS.setARGB(92, 0, 0, 0);
 		PAINT_MINOR_TICKS.setStyle(Style.STROKE);
-		PAINT_MINOR_TICKS.setStrokeWidth(0);
+		PAINT_MINOR_TICKS.setStrokeWidth(2);
 
 		PAINT_DISABLED.setARGB(48, 0, 0, 0);
 		PAINT_DISABLED.setStyle(Style.FILL);
@@ -92,8 +95,8 @@ public class TimelineEntry extends View {
 
 		if (mStartTime == 0) {
 			mEndTime = System.currentTimeMillis();
-			// ms → s → m → h → d
-			mStartTime = mEndTime - 1000 * 60 * 60 * 24;
+
+			mStartTime = mEndTime - DEFAULT_SCALE;
 		}
 	}
 
@@ -208,10 +211,12 @@ public class TimelineEntry extends View {
 		final int hCenter = h / 2;
 
 		final long timelineW = mEndTime - mStartTime;
-		mScaleX = getWidth() / (float) timelineW;
-		mMultX = (float) timelineW / getWidth();
+		mScaleX = w / (float) timelineW;
+		mMultX = (float) timelineW / w;
 
 		canvas.save();
+
+		// offset so drawing starts with the padding
 		canvas.translate(mPaddingLeft, mPaddingTop);
 
 		// main axis
@@ -233,11 +238,11 @@ public class TimelineEntry extends View {
 						* mScaleX, hCenter - MINOR_TICK_SIZE, PAINT_MINOR_TICKS);
 			}
 		}
+
 		canvas.restore();
 
-		mMarker.setBounds(0, 0, w, h);
+		mMarker.setBounds(mPaddingLeft, 0, w + mPaddingRight, h);
 		mMarker.draw(canvas);
-
 	}
 
 	public long getTime() {
