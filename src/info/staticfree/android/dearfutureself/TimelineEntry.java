@@ -163,7 +163,7 @@ public class TimelineEntry extends View {
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		int measuredWidth = View.MeasureSpec.getSize(widthMeasureSpec), measuredHeight = View.MeasureSpec
-				.getSize(widthMeasureSpec);
+				.getSize(heightMeasureSpec);
 
 		switch (View.MeasureSpec.getMode(widthMeasureSpec)) {
 			case View.MeasureSpec.UNSPECIFIED:
@@ -178,10 +178,10 @@ public class TimelineEntry extends View {
 		}
 		switch (View.MeasureSpec.getMode(heightMeasureSpec)) {
 			case View.MeasureSpec.UNSPECIFIED:
-				measuredHeight = 100;
+				measuredHeight = getBackground().getIntrinsicHeight();
 				break;
 			case View.MeasureSpec.AT_MOST:
-				measuredHeight = 100;
+				measuredHeight = getBackground().getIntrinsicHeight();
 				break;
 			case View.MeasureSpec.EXACTLY:
 				// already set!
