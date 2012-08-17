@@ -13,10 +13,13 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.IBinder;
+import android.text.format.DateUtils;
 import android.util.Log;
 
 public class MessageService extends Service {
 	private static final String TAG = MessageService.class.getSimpleName();
+
+	private static final boolean DEBUG = false;
 
 	public static final String
 		ACTION_SHOW_NOTIFICATION = "info.staticfree.android.dearfutureself.ACTION_SHOW_NOTIFICATION",
@@ -24,6 +27,15 @@ public class MessageService extends Service {
 
 	private static final String[] PROJECTION = {Message._ID, Message.SUBJECT, Message.BODY, Message.DATE_ARRIVE};
 	private static final String[] COUNT_PROJECTION = {Message._ID, Message.STATE};
+
+	private AlarmManager am;
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+
+		am = (AlarmManager) getSystemService(ALARM_SERVICE);
+	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
@@ -42,15 +54,6 @@ public class MessageService extends Service {
 		return START_NOT_STICKY;
 	}
 
-	private AlarmManager am;
-
-	@Override
-	public void onCreate() {
-		super.onCreate();
-
-		am = (AlarmManager) getSystemService(ALARM_SERVICE);
-	}
-
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// TODO Auto-generated method stub
@@ -61,6 +64,9 @@ public class MessageService extends Service {
 
 		final Cursor c = getContentResolver().query(messages, null, null, null, null);
 		try{
+			if (DEBUG) {
+				Log.d(TAG, "scheduling " + c.getCount() + " messages(s)");
+			}
 			final int dateCol = c.getColumnIndex(Message.DATE_ARRIVE);
 			final int idCol = c.getColumnIndex(Message._ID);
 			for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
@@ -84,6 +90,14 @@ public class MessageService extends Service {
 						PendingIntent.FLAG_ONE_SHOT);
 		am.cancel(operation);
 		am.set(AlarmManager.RTC_WAKEUP, when, operation);
+		if (DEBUG) {
+			Log.d(TAG,
+					"scheduled display of "
+							+ message
+							+ " at "
+							+ DateUtils.formatDateTime(this, when, DateUtils.FORMAT_SHOW_DATE
+									| DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_YEAR));
+		}
 	}
 
 	public int getCount(ContentResolver cr, int state){

@@ -3,6 +3,7 @@ package info.staticfree.android.dearfutureself.content;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.net.Uri;
+import android.net.Uri.Builder;
 import edu.mit.mobile.android.content.ContentItem;
 import edu.mit.mobile.android.content.ProviderUtils;
 import edu.mit.mobile.android.content.column.DBColumn;
@@ -58,6 +59,28 @@ public class Message implements ContentItem {
 
 	public static final Uri
 		CONTENT_URI = ProviderUtils.toContentUri(MessageProvider.AUTHORITY, PATH);
+
+	public static final Uri NEW_MESSAGES = getUriForStates(STATE_NEW);
+
+	/**
+	 * Constructs a Uri matching any of the provided states (joined with an "or").
+	 *
+	 * @param states
+	 *            a list of {@link #STATE_NEW}, {@link #STATE_READ}, etc.
+	 * @return a Uri matching the desired states
+	 */
+	public static Uri getUriForStates(int... states) {
+		final Builder msg = Message.CONTENT_URI.buildUpon();
+
+		boolean delimit = false;
+
+		for (final int state : states) {
+			msg.appendQueryParameter((delimit ? "|" : "") + Message.STATE, String.valueOf(state));
+			delimit = true;
+		}
+
+		return msg.build();
+	}
 
 	public static final String
 		CONTENT_TYPE_DIR = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH,

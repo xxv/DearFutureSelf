@@ -33,9 +33,8 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
 	private ActionBar mActionBar;
 
-	public static final Uri INBOX_URI = Message.CONTENT_URI.buildUpon().
-		appendQueryParameter(Message.STATE, String.valueOf(Message.STATE_NEW)).
-		appendQueryParameter("|"+Message.STATE, String.valueOf(Message.STATE_READ)).build();
+	public static final Uri INBOX_URI = Message.getUriForStates(Message.STATE_NEW,
+			Message.STATE_READ);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
