@@ -1,5 +1,6 @@
 package info.staticfree.android.dearfutureself;
 
+import info.staticfree.android.dearfutureself.content.ImportExportException;
 import info.staticfree.android.dearfutureself.content.MessageUtils;
 
 import java.io.File;
@@ -247,16 +248,13 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
 				MessageUtils.exportJson(ImportExport.this, destination.getAbsolutePath());
 				Log.i(TAG, "Exported to " + destination.getAbsolutePath());
 			} catch (final FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.e(TAG, "error exporting", e);
 				return false;
 			} catch (final IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.e(TAG, "error exporting", e);
 				return false;
-			} catch (final JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (final ImportExportException e) {
+				Log.e(TAG, "error exporting", e);
 				return false;
 			}
 			return true;
@@ -264,6 +262,7 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
 
 		@Override
 		protected void onPostExecute(Boolean result) {
+			mBackupAdapter.reload();
 			progress.dismiss();
 		}
 	}

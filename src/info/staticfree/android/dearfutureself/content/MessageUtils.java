@@ -7,7 +7,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,6 +27,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.format.Time;
 import android.util.Log;
+import edu.mit.mobile.android.content.SQLGenerationException;
+import edu.mit.mobile.android.content.column.DBColumn;
+import edu.mit.mobile.android.content.column.DBColumnType;
+import edu.mit.mobile.android.content.column.DatetimeColumn;
+import edu.mit.mobile.android.content.column.IntegerColumn;
+import edu.mit.mobile.android.content.column.TextColumn;
 import edu.mit.mobile.android.utils.StreamUtils;
 
 public class MessageUtils {
@@ -40,13 +49,45 @@ public class MessageUtils {
 			;
 
 	// TODO double-check that we can actually write to SD card
-	public static void exportJson(Context context, String file) throws IOException, JSONException, FileNotFoundException {
+	public static void exportJson(Context context, String file) throws IOException,
+			ImportExportException, FileNotFoundException {
 		final ContentResolver cr = context.getContentResolver();
 
 		final Cursor c = cr.query(Message.CONTENT_URI, null, null, null, null);
 
 		final JSONObject doc = new JSONObject();
-		doc.put(META_KEY, exportMetadata(context));
+		try {
+			doc.put(META_KEY, exportMetadata(context));
+
+		final int TYPE_STRING = 100, TYPE_DATETIME = 101, TYPE_INTEGER = 102;
+
+		final int colCount = c.getColumnCount();
+
+		final Map<String, Integer> types = new HashMap<String, Integer>(colCount);
+
+		for (final Field field : Message.class.getFields()) {
+			int type = 0;
+
+			try {
+				final Class<? extends DBColumnType<?>> col = DBColumn.Extractor.getFieldType(Message.class, field);
+				if (col == null){
+					continue;
+				}
+
+				if (TextColumn.class.equals(col)) {
+					type = TYPE_STRING;
+				} else if (IntegerColumn.class.equals(col)) {
+					type = TYPE_INTEGER;
+				} else if (DatetimeColumn.class.equals(col)) {
+					type = TYPE_DATETIME;
+				}
+
+				types.put(DBColumn.Extractor.getDbColumnName(field), type);
+
+			} catch (final SQLGenerationException e) {
+					throw new ImportExportException("error in Message data definition", e);
+			}
+		}
 
 		final JSONArray msgs = new JSONArray();
 		try {
@@ -55,11 +96,20 @@ public class MessageUtils {
 				final JSONObject jo = new JSONObject();
 				for (int i = 0; i < c.getColumnCount(); i++){
 					final String colName = c.getColumnName(i);
-//					if (BaseColumns._ID.equals(colName)){
-//						continue;
-//					}
-					jo.put(colName, c.getString(i));
 
+					switch (types.get(colName)) {
+						case TYPE_DATETIME:
+							jo.put(colName, c.getLong(i));
+							break;
+
+						case TYPE_INTEGER:
+							jo.put(colName, c.getInt(i));
+							break;
+
+						case TYPE_STRING:
+							jo.put(colName, c.getString(i));
+							break;
+					}
 				}
 				msgs.put(jo);
 			}
@@ -77,6 +127,9 @@ public class MessageUtils {
 			c.close();
 		}
 		doc.put(MESSAGES_KEY, msgs);
+		} catch (final JSONException e) {
+			throw new ImportExportException("error encoding export (this shouldn't happen)", e);
+		}
 	}
 
 	/**
@@ -98,7 +151,9 @@ public class MessageUtils {
 				cvs[i] = new ContentValues();
 				final JSONObject jo = ja.getJSONObject(i);
 
-				for (final Iterator<String> iter = jo.keys(); iter.hasNext();) {
+				// the JSON library really should have fixed this
+				for (@SuppressWarnings("unchecked")
+				final Iterator<String> iter = jo.keys(); iter.hasNext();) {
 					final String key = iter.next();
 					if (Message._ID.equals(key)) {
 						continue;
@@ -108,9 +163,15 @@ public class MessageUtils {
 				}
 			}
 			final ContentResolver cr = context.getContentResolver();
-			cr.delete(Message.CONTENT_URI, null, null);
+			int count = 0;
 
-			return cr.bulkInsert(Message.CONTENT_URI, cvs);
+			// if the import has no content, don't trash the existing content.
+			if (cvs.length > 0) {
+				cr.delete(Message.CONTENT_URI, null, null);
+				count = cr.bulkInsert(Message.CONTENT_URI, cvs);
+			}
+
+			return count;
 		} finally {
 			isr.close();
 		}
