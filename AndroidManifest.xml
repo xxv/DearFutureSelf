@@ -26,7 +26,7 @@
     <!-- alarm -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    
+
     <!-- self -->
     <uses-permission android:name="info.staticfree.android.dearfutureself.WRITE_MESSAGES" />
     <uses-permission android:name="info.staticfree.android.dearfutureself.READ_MESSAGES" />
@@ -34,11 +34,15 @@
     <permission
         android:name="info.staticfree.android.dearfutureself.READ_MESSAGES"
         android:description="@string/permission_read_dear_future_self_messages_description"
-        android:label="@string/permission_read_dear_future_self_messages_label" />
+        android:label="@string/permission_read_dear_future_self_messages_label"
+        android:permissionGroup="android.permission-group.MESSAGES"
+        android:protectionLevel="dangerous" />
     <permission
         android:name="info.staticfree.android.dearfutureself.WRITE_MESSAGES"
         android:description="@string/permission_write_dear_future_self_messages_description"
-        android:label="@string/permission_write_dear_future_self_messages_label" />
+        android:label="@string/permission_write_dear_future_self_messages_label"
+        android:permissionGroup="android.permission-group.MESSAGES"
+        android:protectionLevel="dangerous" />
 
     <application
         android:hardwareAccelerated="true"
