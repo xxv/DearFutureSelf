@@ -3,7 +3,7 @@
     package="info.staticfree.android.dearfutureself"
     android:installLocation="internalOnly"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="0.1" >
 
     <supports-screens android:anyDensity="true" />
 
