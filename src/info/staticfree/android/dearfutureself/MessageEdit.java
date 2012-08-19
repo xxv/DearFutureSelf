@@ -245,7 +245,10 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
 		}else{
 			setSendIndicator(false);
 		}
-		mTimelineValueView.setText(DateUtils.getRelativeDateTimeString(this, newValue, DateUtils.MINUTE_IN_MILLIS, DateUtils.HOUR_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME|DateUtils.FORMAT_SHOW_DATE|DateUtils.FORMAT_SHOW_YEAR));
+		mTimelineValueView.setText(DateUtils.getRelativeDateTimeString(this, newValue,
+				DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME
+						| DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR
+						| DateUtils.FORMAT_SHOW_WEEKDAY));
 
 	}
 }
