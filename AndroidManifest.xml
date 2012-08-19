@@ -26,6 +26,10 @@
     <!-- alarm -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- self -->
+    <uses-permission android:name="info.staticfree.android.dearfutureself.WRITE_MESSAGES" />
+    <uses-permission android:name="info.staticfree.android.dearfutureself.READ_MESSAGES" />
 
     <permission
         android:name="info.staticfree.android.dearfutureself.READ_MESSAGES"
