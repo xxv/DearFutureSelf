@@ -6,14 +6,21 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewParent;
+import android.view.animation.DecelerateInterpolator;
 
 public class TimelineEntry extends View {
+	@SuppressWarnings("unused")
+	private static final String TAG = TimelineEntry.class.getSimpleName();
 	long mStartTime, mEndTime;
 	long mMinTime = 0;
 
@@ -44,6 +51,9 @@ public class TimelineEntry extends View {
 	private float mPrevX;
 	private float mPrevX1;
 
+	private Scroller mScroller;
+	private VelocityTracker mVelocityTracker;
+
 	//@formatter:off
 	private static final int
 		STATE_STILL = 0,
@@ -52,8 +62,42 @@ public class TimelineEntry extends View {
 	//@formatter:on
 
 	private int mState = STATE_STILL;
+	private float mMaximumVelocity;
+	private int mTouchSlop; // TODO use this
+	private int mMinimumVelocity;
+	private int mActivePointerId;
+	private int mScrollX;
+	private int mScrollY;
+
+	private static final int MSG_STOP_SCROLLING = 100;
+
+	private static class ScrollHandler extends Handler {
+		private final Scroller mScroller;
+
+		public ScrollHandler(Scroller scroller) {
+			mScroller = scroller;
+		}
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case MSG_STOP_SCROLLING:
+					mScroller.abortAnimation();
+					break;
+			}
+		};
+	};
+
+	private ScrollHandler mHandler;
 
 	private static final Paint RED_OUTLINE = new Paint();
+
+
+	/**
+	 * ms that the pointer must be held down to stop scrolling.
+	 */
+	private static final long STOP_SCROLLING_DELAY = 200;
+
 	static {
 		PAINT_AXIS.setARGB(192, 0, 0, 0);
 		PAINT_AXIS.setStyle(Style.STROKE);
@@ -92,6 +136,14 @@ public class TimelineEntry extends View {
 
 	private void init(Context context) {
 		mMarker = context.getResources().getDrawable(R.drawable.timeline_marker);
+
+		mScroller = new Scroller(context, new DecelerateInterpolator(), true);
+		mHandler = new ScrollHandler(mScroller);
+
+		final ViewConfiguration configuration = ViewConfiguration.get(context);
+		mTouchSlop = configuration.getScaledTouchSlop();
+		mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
+		mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
 
 		if (mStartTime == 0) {
 			mEndTime = System.currentTimeMillis();
@@ -354,28 +406,76 @@ public class TimelineEntry extends View {
 		}
 	}
 
+	/*
+	 * Copyright (C) 2009 The Android Open Source Project
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+	 * except in compliance with the License. You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software distributed under the
+	 * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+	 * either express or implied. See the License for the specific language governing permissions
+	 * and limitations under the License.
+	 */
+
+	private void initOrResetVelocityTracker() {
+		if (mVelocityTracker == null) {
+			mVelocityTracker = VelocityTracker.obtain();
+		} else {
+			mVelocityTracker.clear();
+		}
+	}
+
+	private void initVelocityTrackerIfNotExists() {
+		if (mVelocityTracker == null) {
+			mVelocityTracker = VelocityTracker.obtain();
+		}
+	}
+
+	private void recycleVelocityTracker() {
+		if (mVelocityTracker != null) {
+			mVelocityTracker.recycle();
+			mVelocityTracker = null;
+		}
+	}
+
+
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		final int action = event.getAction();
 
-		final int pointerID = (action & MotionEvent.ACTION_POINTER_ID_MASK) >> MotionEvent.ACTION_POINTER_ID_SHIFT;
+		initVelocityTrackerIfNotExists();
+
+		final int idx = event.getActionIndex();
+
+		final boolean twoFingers = event.getPointerCount() == 2;
 
 		switch (action & MotionEvent.ACTION_MASK) {
+		// first finger
 			case MotionEvent.ACTION_DOWN: {
 				attemptClaimDrag();
+				initOrResetVelocityTracker();
+				mVelocityTracker.addMovement(event);
 				mState = STATE_TRANSLATING;
-				mPrevX = event.getX(0);
-				// mScaleCenterX = mPrevX;
+				mPrevX = event.getX(idx);
+
+				mHandler.sendEmptyMessageDelayed(MSG_STOP_SCROLLING, STOP_SCROLLING_DELAY);
+
+				mActivePointerId = event.getPointerId(0);
 
 				return true;
 			}
 
+			// second+ fingers
 			case MotionEvent.ACTION_POINTER_DOWN: {
 				attemptClaimDrag();
 
-				if (pointerID == 1) {
-					mPrevX1 = event.getX(1);
+				if (twoFingers) {
+					mPrevX1 = event.getX(idx);
 					mState = STATE_SCALING;
+					mScroller.abortAnimation();
 				}
 				return true;
 			}
@@ -384,7 +484,12 @@ public class TimelineEntry extends View {
 
 				switch (mState) {
 					case STATE_TRANSLATING:
-						translateTimeline(mPrevX - event.getX(0));
+						mVelocityTracker.addMovement(event);
+						// onScrollChanged((int) mPrevX, 0, (int) event.getX(idx), 0);
+
+						if (mScroller.isFinished()) {
+							translateTimeline(mPrevX - event.getX(idx));
+						}
 						break;
 
 					case STATE_SCALING:
@@ -398,9 +503,10 @@ public class TimelineEntry extends View {
 						mPrevX1 = event.getX(1);
 						break;
 				}
-				mPrevX = event.getX(0);
+				mPrevX = event.getX(idx);
 				return true;
 			}
+			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_POINTER_UP:
 			case MotionEvent.ACTION_UP: {
 
@@ -410,16 +516,73 @@ public class TimelineEntry extends View {
 						break;
 
 					case STATE_TRANSLATING:
+						mHandler.removeMessages(MSG_STOP_SCROLLING);
+
+						mVelocityTracker.addMovement(event);
+						mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+						final int initialVelocity = (int) mVelocityTracker
+								.getXVelocity(mActivePointerId);
+						if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
+
+							fling(-initialVelocity);
+						}
+
 						mState = STATE_STILL;
 				}
-
+				recycleVelocityTracker();
 			}
+
 				return true;
+
 
 			default:
 				return super.onTouchEvent(event);
 		}
 
+	}
+
+	private void fling(int velocityX) {
+		// this compensates for the way that the scroller behaves when it's close to the edge.
+		// Normally, the behavior is very unusual and causes the scroller to suddenly decrease in
+		// velocity. This makes it more gradual, such that the scroller hits the edge when very
+		// close. Larger flings cause the scroller to decelerate until it reaches the edge, which is
+		// functionally useful for a time slider, even if physics-wise it's a little funky.
+		int minX = (int) ((mMinTime - getTime()) * mScaleX) + mScrollX;
+		if (mScrollX - minX < mWidth) {
+			minX -= mWidth / 2;
+		}
+
+		mScroller.fling(mScrollX, mScrollY, velocityX, 0 /* velocityY */,
+				Math.max(minX, -Integer.MAX_VALUE) /* minX */, Integer.MAX_VALUE, 0, 0);
+
+		postInvalidate();
+	}
+
+	@Override
+	public void computeScroll() {
+
+		if (mScroller.computeScrollOffset()) {
+			final int oldX = mScrollX;
+			final int oldY = mScrollY;
+			final int x = mScroller.getCurrX();
+			final int y = mScroller.getCurrY();
+
+			// if (getTime() <= mMinTime) {
+			// mScroller.abortAnimation();
+			// }
+
+			if (oldX != x || oldY != y) {
+				onScrollChanged(x, y, oldX, oldY);
+			}
+		}
+	}
+
+	@Override
+	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+		mScrollX = l;
+		mScrollY = t;
+
+		translateTimeline(l - oldl);
 	}
 
 	public interface OnChangeListener {
