@@ -108,6 +108,8 @@ public class MessageService extends Service {
 		return count;
 	}
 
+	@SuppressWarnings("deprecation")
+	// the replacement for Notification is introduced in API level 11
 	public void showNotification(Uri message){
 		final ContentResolver cr = getContentResolver();
 
@@ -118,6 +120,7 @@ public class MessageService extends Service {
 
 				return;
 			}
+
 			String subject = c.getString(c.getColumnIndex(Message.SUBJECT));
 			final String body = c.getString(c.getColumnIndex(Message.BODY));
 			final long dateArrived = c.getLong(c.getColumnIndex(Message.DATE_ARRIVE));
@@ -134,10 +137,12 @@ public class MessageService extends Service {
 			notification.flags = Notification.FLAG_AUTO_CANCEL;
 			notification.defaults = Notification.DEFAULT_ALL;
 
-
 			final int newCount = getCount(cr, Message.STATE_NEW);
 			if (newCount > 1){
-				final PendingIntent content = PendingIntent.getActivity(this, 0, new Intent(this, MessageList.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_UPDATE_CURRENT);
+				final PendingIntent content = PendingIntent
+						.getActivity(this, 0, new Intent(Intent.ACTION_VIEW, Message.NEW_MESSAGES)
+								.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+								PendingIntent.FLAG_UPDATE_CURRENT);
 				notification.setLatestEventInfo(this, getString(R.string.notification_messages_have_arrived), getString(R.string.you_have_x_new_messages, newCount), content);
 				notification.number = newCount;
 

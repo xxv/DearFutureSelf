@@ -65,6 +65,13 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     }
 
 	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		setIntent(intent);
+		getSupportLoaderManager().restartLoader(0, null, this);
+	}
+
+	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
 		setProgressBarVisibility(true);
 		if (mActionBar != null) {
