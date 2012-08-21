@@ -23,11 +23,12 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.markupartist.android.widget.ActionBar;
 
-
-public class MessageList extends FragmentActivity implements LoaderCallbacks<Cursor>, OnClickListener, OnItemClickListener {
+public class MessageList extends FragmentActivity implements LoaderCallbacks<Cursor>,
+		OnClickListener, OnItemClickListener {
 
 	private CursorAdapter mListAdapter;
 
@@ -36,38 +37,51 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 	public static final Uri INBOX_URI = Message.getUriForStates(Message.STATE_NEW,
 			Message.STATE_READ);
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+	private static final String TAG = MessageList.class.getSimpleName();
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
 
-        mListAdapter = new MessageListAdapter(this);
+		mListAdapter = new MessageListAdapter(this);
 
-        final ListView list = (ListView) findViewById(android.R.id.list);
-        list.setAdapter(mListAdapter);
-        list.setEmptyView(findViewById(android.R.id.empty));
-        list.setOnItemClickListener(this);
-        list.setOnCreateContextMenuListener(this);
+		final ListView list = (ListView) findViewById(android.R.id.list);
+		list.setAdapter(mListAdapter);
+		list.setEmptyView(findViewById(android.R.id.empty));
+		list.setOnItemClickListener(this);
+		list.setOnCreateContextMenuListener(this);
+
+		onNewIntent(getIntent());
 
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			mActionBar = (ActionBar) findViewById(R.id.actionbar);
 			getMenuInflater().inflate(R.menu.message_list_options, mActionBar.asMenu());
 		}
-
-        final Intent intent = getIntent();
-        if (intent.getData() == null){
-        	intent.setData(INBOX_URI);
-        }
-        setIntent(intent);
-
-        getSupportLoaderManager().initLoader(0, null, this);
-    }
+	}
 
 	@Override
 	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
+		// sanity-check the intents
+		if (intent.getData() == null) {
+			intent.setData(INBOX_URI);
+		}
+
+		final String action = intent.getAction();
+
+		if (!Intent.ACTION_MAIN.equals(action)
+				&& !(Intent.ACTION_VIEW.equals(action) && Message.CONTENT_TYPE_DIR.equals(intent
+						.resolveType(this)))) {
+			Toast.makeText(this, "This application can't handle the provided intent.",
+					Toast.LENGTH_LONG).show();
+			setResult(RESULT_CANCELED);
+			finish();
+			return;
+		}
+
 		setIntent(intent);
+
 		getSupportLoaderManager().restartLoader(0, null, this);
 	}
 
@@ -78,8 +92,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 			mActionBar.setProgressBarVisibility(View.VISIBLE);
 		}
 
-		return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION,
-				null,
+		return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION, null,
 				null, Message.SORT_DEFAULT);
 	}
 
@@ -97,16 +110,14 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 		mListAdapter.swapCursor(null);
 	}
 
-
 	@Override
 	public void onClick(View v) {
-		switch (v.getId()){
+		switch (v.getId()) {
 		}
 	}
 
 	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		getMenuInflater().inflate(R.menu.message_view_options, menu);
 		super.onCreateContextMenu(menu, v, menuInfo);
 	}
@@ -114,52 +125,52 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		final Uri baseUri = getIntent().getData();
-        AdapterView.AdapterContextMenuInfo info;
-        try {
-            info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-       } catch (final ClassCastException e) {
-           //Log.e(TAG, "bad menuInfo", e);
-           return false;
-       }
-       final Uri itemUri = ContentUris.withAppendedId(baseUri, info.id);
+		AdapterView.AdapterContextMenuInfo info;
+		try {
+			info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+		} catch (final ClassCastException e) {
+			// Log.e(TAG, "bad menuInfo", e);
+			return false;
+		}
+		final Uri itemUri = ContentUris.withAppendedId(baseUri, info.id);
 
-		switch (item.getItemId()){
-		case R.id.view:
-			startActivity(new Intent(Intent.ACTION_VIEW, itemUri));
-			return true;
+		switch (item.getItemId()) {
+			case R.id.view:
+				startActivity(new Intent(Intent.ACTION_VIEW, itemUri));
+				return true;
 
-		case R.id.edit:
-			startActivity(new Intent(Intent.ACTION_EDIT, itemUri));
-			return true;
+			case R.id.edit:
+				startActivity(new Intent(Intent.ACTION_EDIT, itemUri));
+				return true;
 
-		case R.id.delete:
-			new SetStateTask(this).execute(itemUri, Message.STATE_DELETED);
-			return true;
+			case R.id.delete:
+				new SetStateTask(this).execute(itemUri, Message.STATE_DELETED);
+				return true;
 
 			default:
-			return super.onContextItemSelected(item);
+				return super.onContextItemSelected(item);
 		}
 	}
 
-
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()){
-		case R.id.add:
-			startActivity(new Intent(Intent.ACTION_INSERT, getIntent().getData()));
-			return true;
+		switch (item.getItemId()) {
+			case R.id.add:
+				startActivity(new Intent(Intent.ACTION_INSERT, getIntent().getData()));
+				return true;
 
-		case R.id.import_export:
-			startActivity(new Intent(this, ImportExport.class));
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
+			case R.id.import_export:
+				startActivity(new Intent(this, ImportExport.class));
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
-		startActivity(new Intent(Intent.ACTION_VIEW, ContentUris.withAppendedId(getIntent().getData(), id)));
+		startActivity(new Intent(Intent.ACTION_VIEW, ContentUris.withAppendedId(getIntent()
+				.getData(), id)));
 
 	}
 
