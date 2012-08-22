@@ -1,5 +1,7 @@
 package info.staticfree.android.dearfutureself;
 
+import java.util.Calendar;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -33,7 +35,9 @@ public class TimelineEntry extends View {
 	// ms → s → m → h → d
 	private static final int DEFAULT_SCALE = 1000 * 60 * 60 * 24;
 
-	private static final int MAJOR_TICK_SIZE = 20;
+	private static final int MIN_SCALE = 1000 * 60 * 5;
+
+	private static final int MAJOR_TICK_SIZE = 40;
 	private static final int MINOR_TICK_SIZE = 10;
 	private final int X_SCALE = 60 * 60 * 1000;
 	private final int X_SCALE_SMALL = 15 * 60 * 1000;
@@ -71,6 +75,11 @@ public class TimelineEntry extends View {
 	private int mActivePointerId;
 	private int mScrollX;
 	private int mScrollY;
+
+	private static Interval[] mIntervals = new Interval[] {
+			new BasicInterval(DateUtils.MINUTE_IN_MILLIS),
+			new BasicInterval(DateUtils.MINUTE_IN_MILLIS * 15), new HourInterval(),
+			new DayInterval(), new WeekInterval(), new MonthInterval(), new YearInterval() };
 
 	private static final int MSG_STOP_SCROLLING = 100;
 
@@ -153,6 +162,8 @@ public class TimelineEntry extends View {
 
 			mStartTime = mEndTime - DEFAULT_SCALE;
 		}
+
+		mCalendar = Calendar.getInstance();
 	}
 
 	@Override
@@ -259,6 +270,8 @@ public class TimelineEntry extends View {
 		mHeight = h - (mPaddingTop) - mPaddingBottom;
 	}
 
+	Calendar mCalendar;
+
 	@Override
 	protected void onDraw(Canvas canvas) {
 		final int w = mWidth;
@@ -282,30 +295,36 @@ public class TimelineEntry extends View {
 			canvas.drawRect(0, 0, (mMinTime - mStartTime) * mScaleX, h, PAINT_DISABLED);
 		}
 
-		// draw minutes
-		if (timelineW < DateUtils.HOUR_IN_MILLIS * 6) {
-			// draw minor ticks
-			for (long xMarker = mStartTime - (mStartTime % DateUtils.MINUTE_IN_MILLIS); xMarker < mEndTime; xMarker += DateUtils.MINUTE_IN_MILLIS) {
-					canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter,
-							(xMarker - mStartTime) * mScaleX, hCenter - MINOR_TICK_SIZE,
-							PAINT_MINOR_TICKS);
-			}
-		}
+		final float maxTicks = w / 10.0f;
 
-		if (timelineW < DateUtils.WEEK_IN_MILLIS) {
+		final float minTicks = w / 100000.0f;
 
-			// draw minor ticks
-			for (long xMarker = mStartTime - (mStartTime % X_SCALE_SMALL); xMarker < mEndTime; xMarker += X_SCALE_SMALL) {
-				if (xMarker % X_SCALE == 0) {
-					canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter + MAJOR_TICK_SIZE,
-							(xMarker - mStartTime) * mScaleX, hCenter - MAJOR_TICK_SIZE,
-							PAINT_MAJOR_TICKS);
+		for (final Interval interval : mIntervals) {
+			final long fullCount = timelineW / interval.getApproxPeriod();
+
+			if (fullCount < maxTicks && fullCount > minTicks) {
+				final float scale = 1 - ((fullCount - minTicks) / maxTicks);
+				final float scaleLog = (float) (1 - Math.log(1 + (fullCount - 1) / maxTicks));
+				PAINT_MAJOR_TICKS.setAlpha((int) (scale * 255));
+				if (scale > 0.8f) {
+					PAINT_MAJOR_TICKS.setStrokeWidth((scale - 0.8f) * 6 + 1);
 				} else {
-					if (timelineW < DateUtils.DAY_IN_MILLIS) {
-						canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter,
-								(xMarker - mStartTime) * mScaleX, hCenter - MINOR_TICK_SIZE,
-								PAINT_MINOR_TICKS);
+					PAINT_MAJOR_TICKS.setStrokeWidth(1);
+				}
+				final float tickSize = ((MAJOR_TICK_SIZE - MINOR_TICK_SIZE) * scale + MINOR_TICK_SIZE);
+				mCalendar.setTimeInMillis(mStartTime);
+				interval.startTicking(mCalendar);
+				int i = 0;
+				for (long xMarker = interval.getNextTick(); xMarker >= mStartTime
+						&& xMarker < mEndTime; xMarker = interval.getNextTick()) {
+					if (i > 1000) {
+						throw new RuntimeException("tried to draw too many ticks with interval "
+								+ interval);
 					}
+					i++;
+
+					canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter + tickSize,
+							(xMarker - mStartTime) * mScaleX, hCenter - tickSize, PAINT_MAJOR_TICKS);
 				}
 			}
 		}
@@ -319,6 +338,169 @@ public class TimelineEntry extends View {
 		mMarker.draw(canvas);
 	}
 
+	private static interface Interval {
+		public long getApproxPeriod();
+
+		public void startTicking(Calendar calendar);
+
+		public long getNextTick();
+	}
+
+	private static class HourInterval implements Interval {
+
+		private Calendar c;
+
+		public void startTicking(Calendar calendar) {
+			this.c = (Calendar) calendar.clone();
+
+			c.clear(Calendar.MINUTE);
+			c.clear(Calendar.SECOND);
+			c.clear(Calendar.MILLISECOND);
+		}
+
+		public long getNextTick() {
+			c.add(Calendar.HOUR_OF_DAY, 1);
+
+			return c.getTimeInMillis();
+		}
+
+		@Override
+		public long getApproxPeriod() {
+			return DateUtils.HOUR_IN_MILLIS;
+		}
+	}
+
+	private static class DayInterval implements Interval {
+
+		private Calendar c;
+
+		public void startTicking(Calendar calendar) {
+			this.c = (Calendar) calendar.clone();
+
+			c.set(Calendar.HOUR_OF_DAY, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MILLISECOND, 0);
+		}
+
+		public long getNextTick() {
+			c.add(Calendar.DAY_OF_MONTH, 1);
+
+			return c.getTimeInMillis();
+		}
+
+		@Override
+		public long getApproxPeriod() {
+			return DateUtils.DAY_IN_MILLIS;
+		}
+	}
+
+	private static class WeekInterval implements Interval {
+
+		private Calendar c;
+
+		public void startTicking(Calendar calendar) {
+			this.c = (Calendar) calendar.clone();
+
+			c.set(Calendar.DAY_OF_WEEK, c.getFirstDayOfWeek());
+			c.set(Calendar.HOUR_OF_DAY, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MILLISECOND, 0);
+		}
+
+		public long getNextTick() {
+			c.add(Calendar.WEEK_OF_YEAR, 1);
+
+			return c.getTimeInMillis();
+		}
+
+		@Override
+		public long getApproxPeriod() {
+			return DateUtils.WEEK_IN_MILLIS;
+		}
+	}
+
+	private static class MonthInterval implements Interval {
+
+		private Calendar c;
+
+		public void startTicking(Calendar calendar) {
+			this.c = (Calendar) calendar.clone();
+
+			c.set(Calendar.DAY_OF_MONTH, c.getMinimum(Calendar.DAY_OF_MONTH));
+			c.set(Calendar.HOUR_OF_DAY, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MILLISECOND, 0);
+		}
+
+		public long getNextTick() {
+			c.add(Calendar.MONTH, 1);
+
+			return c.getTimeInMillis();
+		}
+
+		@Override
+		public long getApproxPeriod() {
+			return DateUtils.DAY_IN_MILLIS * 30;
+		}
+	}
+
+	private static class YearInterval implements Interval {
+
+		private Calendar c;
+
+		public void startTicking(Calendar calendar) {
+			this.c = (Calendar) calendar.clone();
+
+			c.set(Calendar.MONTH, c.getMinimum(Calendar.MONTH));
+			c.set(Calendar.DAY_OF_MONTH, c.getMinimum(Calendar.DAY_OF_MONTH));
+			c.set(Calendar.HOUR_OF_DAY, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MILLISECOND, 0);
+		}
+
+		public long getNextTick() {
+			c.add(Calendar.YEAR, 1);
+
+			return c.getTimeInMillis();
+		}
+
+		@Override
+		public long getApproxPeriod() {
+			return DateUtils.DAY_IN_MILLIS * 30 * 12;
+		}
+	}
+
+	private static class BasicInterval implements Interval {
+
+		private final long mInterval;
+
+		private long mStartTime;
+		private long xMarker;
+
+		public BasicInterval(long interval) {
+			mInterval = interval;
+		}
+
+		public void startTicking(Calendar calendar) {
+			mStartTime = calendar.getTimeInMillis();
+			xMarker = mStartTime - (mStartTime % mInterval);
+		}
+
+		public long getNextTick() {
+			xMarker += mInterval;
+			return xMarker;
+		}
+
+		@Override
+		public long getApproxPeriod() {
+			return mInterval;
+		}
+	}
+
 	public long getTime() {
 		return (mEndTime - mStartTime) / 2 + mStartTime;
 	}
@@ -329,6 +511,12 @@ public class TimelineEntry extends View {
 		if (curTime < mMinTime) {
 			final long minOffset = mMinTime - curTime;
 			mStartTime += minOffset;
+			mEndTime += minOffset;
+		}
+
+		if (mEndTime - mStartTime < MIN_SCALE) {
+			final long minOffset = (MIN_SCALE - (mEndTime - mStartTime)) / 2;
+			mStartTime -= minOffset;
 			mEndTime += minOffset;
 		}
 	}
