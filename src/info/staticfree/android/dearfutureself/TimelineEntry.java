@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -281,17 +282,36 @@ public class TimelineEntry extends View {
 			canvas.drawRect(0, 0, (mMinTime - mStartTime) * mScaleX, h, PAINT_DISABLED);
 		}
 
-		// draw minor ticks
-		for (long xMarker = mStartTime - (mStartTime % X_SCALE_SMALL); xMarker < mEndTime; xMarker += X_SCALE_SMALL) {
-			if (xMarker % X_SCALE == 0) {
-				canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter + MAJOR_TICK_SIZE,
-						(xMarker - mStartTime) * mScaleX, hCenter - MAJOR_TICK_SIZE,
-						PAINT_MAJOR_TICKS);
-			} else {
-				canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter, (xMarker - mStartTime)
-						* mScaleX, hCenter - MINOR_TICK_SIZE, PAINT_MINOR_TICKS);
+		// draw minutes
+		if (timelineW < DateUtils.HOUR_IN_MILLIS * 6) {
+			// draw minor ticks
+			for (long xMarker = mStartTime - (mStartTime % DateUtils.MINUTE_IN_MILLIS); xMarker < mEndTime; xMarker += DateUtils.MINUTE_IN_MILLIS) {
+					canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter,
+							(xMarker - mStartTime) * mScaleX, hCenter - MINOR_TICK_SIZE,
+							PAINT_MINOR_TICKS);
 			}
 		}
+
+		if (timelineW < DateUtils.WEEK_IN_MILLIS) {
+
+			// draw minor ticks
+			for (long xMarker = mStartTime - (mStartTime % X_SCALE_SMALL); xMarker < mEndTime; xMarker += X_SCALE_SMALL) {
+				if (xMarker % X_SCALE == 0) {
+					canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter + MAJOR_TICK_SIZE,
+							(xMarker - mStartTime) * mScaleX, hCenter - MAJOR_TICK_SIZE,
+							PAINT_MAJOR_TICKS);
+				} else {
+					if (timelineW < DateUtils.DAY_IN_MILLIS) {
+						canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter,
+								(xMarker - mStartTime) * mScaleX, hCenter - MINOR_TICK_SIZE,
+								PAINT_MINOR_TICKS);
+					}
+				}
+			}
+		}
+
+		// final Path path = new Path();
+		// XXX path.canvas.drawPath(path, PAINT_DISABLED);
 
 		canvas.restore();
 
