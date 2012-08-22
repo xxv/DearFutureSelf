@@ -51,6 +51,8 @@ public class TimelineEntry extends View {
 	private float mPrevX;
 	private float mPrevX1;
 
+	private float mPrevY;
+
 	private Scroller mScroller;
 	private VelocityTracker mVelocityTracker;
 
@@ -441,7 +443,6 @@ public class TimelineEntry extends View {
 		}
 	}
 
-
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		final int action = event.getAction();
@@ -460,6 +461,7 @@ public class TimelineEntry extends View {
 				mVelocityTracker.addMovement(event);
 				mState = STATE_TRANSLATING;
 				mPrevX = event.getX(idx);
+				mPrevY = event.getY(idx);
 
 				mHandler.sendEmptyMessageDelayed(MSG_STOP_SCROLLING, STOP_SCROLLING_DELAY);
 
@@ -481,14 +483,15 @@ public class TimelineEntry extends View {
 			}
 
 			case MotionEvent.ACTION_MOVE: {
+				final float x = event.getX(idx);
+				final float y = event.getY(idx);
 
 				switch (mState) {
 					case STATE_TRANSLATING:
 						mVelocityTracker.addMovement(event);
-						// onScrollChanged((int) mPrevX, 0, (int) event.getX(idx), 0);
 
 						if (mScroller.isFinished()) {
-							translateTimeline(mPrevX - event.getX(idx));
+							onScrollChanged((int) mPrevX, (int) mPrevY, (int) x, (int) y);
 						}
 						break;
 
@@ -503,7 +506,8 @@ public class TimelineEntry extends View {
 						mPrevX1 = event.getX(1);
 						break;
 				}
-				mPrevX = event.getX(idx);
+				mPrevX = x;
+				mPrevY = y;
 				return true;
 			}
 			case MotionEvent.ACTION_CANCEL:
@@ -520,11 +524,21 @@ public class TimelineEntry extends View {
 
 						mVelocityTracker.addMovement(event);
 						mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-						final int initialVelocity = (int) mVelocityTracker
-								.getXVelocity(mActivePointerId);
-						if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
 
-							fling(-initialVelocity);
+						final int initialXVelocity = (int) mVelocityTracker
+								.getXVelocity(mActivePointerId);
+
+						final int initialYVelocity = (int) mVelocityTracker
+								.getYVelocity(mActivePointerId);
+
+						final int absX = Math.abs(initialXVelocity);
+						final int absY = Math.abs(initialYVelocity);
+						if ((absX > mMinimumVelocity) || (absY > mMinimumVelocity)) {
+							if (absX > absY) {
+								fling(-initialXVelocity, 0);
+							} else {
+								fling(0, -initialYVelocity);
+							}
 						}
 
 						mState = STATE_STILL;
@@ -534,14 +548,13 @@ public class TimelineEntry extends View {
 
 				return true;
 
-
 			default:
 				return super.onTouchEvent(event);
 		}
 
 	}
 
-	private void fling(int velocityX) {
+	private void fling(int velocityX, int velocityY) {
 		// this compensates for the way that the scroller behaves when it's close to the edge.
 		// Normally, the behavior is very unusual and causes the scroller to suddenly decrease in
 		// velocity. This makes it more gradual, such that the scroller hits the edge when very
@@ -551,9 +564,9 @@ public class TimelineEntry extends View {
 		if (mScrollX - minX < mWidth) {
 			minX -= mWidth / 2;
 		}
-
-		mScroller.fling(mScrollX, mScrollY, velocityX, 0 /* velocityY */,
-				Math.max(minX, -Integer.MAX_VALUE) /* minX */, Integer.MAX_VALUE, 0, 0);
+		mScroller.fling(mScrollX, mScrollY, velocityX, velocityY,
+				Math.max(minX, Integer.MIN_VALUE), Integer.MAX_VALUE /* maxX */,
+				Integer.MIN_VALUE /* minY */, Integer.MAX_VALUE /* maxY */);
 
 		postInvalidate();
 	}
@@ -567,10 +580,6 @@ public class TimelineEntry extends View {
 			final int x = mScroller.getCurrX();
 			final int y = mScroller.getCurrY();
 
-			// if (getTime() <= mMinTime) {
-			// mScroller.abortAnimation();
-			// }
-
 			if (oldX != x || oldY != y) {
 				onScrollChanged(x, y, oldX, oldY);
 			}
@@ -578,11 +587,12 @@ public class TimelineEntry extends View {
 	}
 
 	@Override
-	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
-		mScrollX = l;
-		mScrollY = t;
+	protected void onScrollChanged(int x, int y, int oldl, int oldt) {
+		mScrollX = x;
+		mScrollY = y;
 
-		translateTimeline(l - oldl);
+		translateTimeline(x - oldl);
+		scaleTimeline(mPrevX, y - oldt);
 	}
 
 	public interface OnChangeListener {
