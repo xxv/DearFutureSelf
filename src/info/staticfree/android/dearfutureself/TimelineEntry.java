@@ -1,11 +1,13 @@
 package info.staticfree.android.dearfutureself;
 
 import java.util.Calendar;
+import java.util.HashSet;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -28,8 +30,7 @@ public class TimelineEntry extends View {
 	long mMinTime = 0;
 
 	private static final Paint PAINT_AXIS = new Paint(Paint.ANTI_ALIAS_FLAG);
-	private static final Paint PAINT_MAJOR_TICKS = new Paint(Paint.ANTI_ALIAS_FLAG);
-	private static final Paint PAINT_MINOR_TICKS = new Paint(Paint.ANTI_ALIAS_FLAG);
+	private static final Paint PAINT_TICK = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private static final Paint PAINT_DISABLED = new Paint(Paint.ANTI_ALIAS_FLAG);
 
 	// ms → s → m → h → d
@@ -39,6 +40,10 @@ public class TimelineEntry extends View {
 
 	private static final int MAJOR_TICK_SIZE = 40;
 	private static final int MINOR_TICK_SIZE = 10;
+
+    private static final int TICK_LABEL_SIZE_LARGE = 20;
+    private static final int TICK_LABEL_SIZE_SMALL = 6;
+
 	private final int X_SCALE = 60 * 60 * 1000;
 	private final int X_SCALE_SMALL = 15 * 60 * 1000;
 
@@ -76,10 +81,8 @@ public class TimelineEntry extends View {
 	private int mScrollX;
 	private int mScrollY;
 
-	private static Interval[] mIntervals = new Interval[] {
-			new BasicInterval(DateUtils.MINUTE_IN_MILLIS),
-			new BasicInterval(DateUtils.MINUTE_IN_MILLIS * 15), new HourInterval(),
-			new DayInterval(), new WeekInterval(), new MonthInterval(), new YearInterval() };
+    private Interval[] mIntervals;
+    private final HashSet<Long> mDrawnTicks = new HashSet<Long>();
 
 	private static final int MSG_STOP_SCROLLING = 100;
 
@@ -101,27 +104,28 @@ public class TimelineEntry extends View {
 	};
 
 	private ScrollHandler mHandler;
+	private SunTimes mSunTimes;
 
 	private static final Paint RED_OUTLINE = new Paint();
-
 
 	/**
 	 * ms that the pointer must be held down to stop scrolling.
 	 */
 	private static final long STOP_SCROLLING_DELAY = 200;
+    private static final Paint PAINT_TICK_LABEL = new Paint(Paint.ANTI_ALIAS_FLAG);
 
 	static {
 		PAINT_AXIS.setARGB(192, 0, 0, 0);
 		PAINT_AXIS.setStyle(Style.STROKE);
 		PAINT_AXIS.setStrokeWidth(2);
 
-		PAINT_MAJOR_TICKS.setARGB(128, 0, 0, 0);
-		PAINT_MAJOR_TICKS.setStyle(Style.STROKE);
-		PAINT_MAJOR_TICKS.setStrokeWidth(2);
+		PAINT_TICK.setARGB(128, 0, 0, 0);
+		PAINT_TICK.setStyle(Style.STROKE);
+		PAINT_TICK.setStrokeWidth(2);
 
-		PAINT_MINOR_TICKS.setARGB(92, 0, 0, 0);
-		PAINT_MINOR_TICKS.setStyle(Style.STROKE);
-		PAINT_MINOR_TICKS.setStrokeWidth(2);
+        PAINT_TICK_LABEL.setARGB(255, 127, 127, 127);
+        PAINT_TICK_LABEL.setTextSize(20);
+        PAINT_TICK_LABEL.setTextAlign(Align.CENTER);
 
 		PAINT_DISABLED.setARGB(48, 0, 0, 0);
 		PAINT_DISABLED.setStyle(Style.FILL);
@@ -147,6 +151,11 @@ public class TimelineEntry extends View {
 	}
 
 	private void init(Context context) {
+        mIntervals = new Interval[] { new YearInterval(), new MonthInterval(context),
+                new WeekInterval(), new DayInterval(), new HourInterval(),
+ new MinuteInterval(15),
+                new MinuteInterval() };
+
 		mMarker = context.getResources().getDrawable(R.drawable.timeline_marker);
 
 		mScroller = new Scroller(context, new DecelerateInterpolator(), true);
@@ -287,6 +296,8 @@ public class TimelineEntry extends View {
 		// offset so drawing starts with the padding
 		canvas.translate(mPaddingLeft, mPaddingTop);
 
+        canvas.clipRect(0, 0, w, h);
+
 		// main axis
 		canvas.drawLine(0, hCenter, w, hCenter, PAINT_AXIS);
 
@@ -297,21 +308,26 @@ public class TimelineEntry extends View {
 
 		final float maxTicks = w / 10.0f;
 
-		final float minTicks = w / 100000.0f;
+        final float minTicks = w / 100000.0f;
+
+        mDrawnTicks.clear();
 
 		for (final Interval interval : mIntervals) {
 			final long fullCount = timelineW / interval.getApproxPeriod();
 
 			if (fullCount < maxTicks && fullCount > minTicks) {
 				final float scale = 1 - ((fullCount - minTicks) / maxTicks);
-				final float scaleLog = (float) (1 - Math.log(1 + (fullCount - 1) / maxTicks));
-				PAINT_MAJOR_TICKS.setAlpha((int) (scale * 255));
+                // final float scaleLog = (float) (1 - Math.log(1 + (fullCount - 1) / maxTicks));
+				PAINT_TICK.setAlpha((int) (scale * 255));
 				if (scale > 0.8f) {
-					PAINT_MAJOR_TICKS.setStrokeWidth((scale - 0.8f) * 6 + 1);
+					PAINT_TICK.setStrokeWidth((scale - 0.8f) * 6 + 1);
 				} else {
-					PAINT_MAJOR_TICKS.setStrokeWidth(1);
+					PAINT_TICK.setStrokeWidth(1);
 				}
 				final float tickSize = ((MAJOR_TICK_SIZE - MINOR_TICK_SIZE) * scale + MINOR_TICK_SIZE);
+                final float textSize = Math.round(((TICK_LABEL_SIZE_LARGE - TICK_LABEL_SIZE_SMALL)
+                        * scale + TICK_LABEL_SIZE_SMALL));
+                PAINT_TICK_LABEL.setTextSize(textSize);
 				mCalendar.setTimeInMillis(mStartTime);
 				interval.startTicking(mCalendar);
 				int i = 0;
@@ -323,8 +339,20 @@ public class TimelineEntry extends View {
 					}
 					i++;
 
-					canvas.drawLine((xMarker - mStartTime) * mScaleX, hCenter + tickSize,
-							(xMarker - mStartTime) * mScaleX, hCenter - tickSize, PAINT_MAJOR_TICKS);
+                    if (mDrawnTicks.contains(xMarker)) {
+                        continue;
+                    }
+
+                    final float xPos = (xMarker - mStartTime) * mScaleX;
+                    canvas.drawLine(xPos, hCenter + tickSize, xPos, hCenter - tickSize,
+                            PAINT_TICK);
+                    final CharSequence label = interval.getTickLabel(scale);
+                    if (label != null) {
+                        canvas.drawText(label, 0, label.length(), xPos, hCenter - tickSize - 1,
+                                PAINT_TICK_LABEL);
+                    }
+
+                    mDrawnTicks.add(xMarker);
 				}
 			}
 		}
@@ -339,12 +367,78 @@ public class TimelineEntry extends View {
 	}
 
 	private static interface Interval {
+        /**
+         * In order to determine when to show a given interval, provide an approximate amount of
+         * time that this interval represents. For example, for a minute interval, return the number
+         * of milliseconds in one minute.
+         *
+         * @return approximation of the interval, in ms
+         */
 		public long getApproxPeriod();
 
+        /**
+         * Initialize the interval with the given calendar. Further calls will be made to
+         * {@link #getNextTick()} and {@link #getTickLabel(float)}.
+         *
+         * @param calendar
+         */
 		public void startTicking(Calendar calendar);
 
+        /**
+         * Gets the next marker. {@link #startTicking(Calendar)} must be called first.
+         * 
+         * @return the next interval time, in Unix epoch time
+         */
 		public long getNextTick();
+
+        /**
+         * Gets a label for the given tick.
+         * 
+         * @param scale
+         *            The zoom factor of the graph. 1.0 means it's the main item; 0.0 means it's
+         *            almost invisible.
+         * @return the label of the same tick that was returned in {@link #getNextTick()}.
+         */
+        public CharSequence getTickLabel(float scale);
 	}
+
+    private static class MinuteInterval implements Interval {
+
+        private Calendar c;
+        private final int mSubInterval;
+
+        public MinuteInterval() {
+            mSubInterval = 1;
+        }
+
+        public MinuteInterval(int subInterval) {
+            mSubInterval = subInterval;
+        }
+
+        public void startTicking(Calendar calendar) {
+            this.c = (Calendar) calendar.clone();
+
+            c.clear(Calendar.SECOND);
+            c.clear(Calendar.MILLISECOND);
+        }
+
+        public long getNextTick() {
+            final int min = c.get(Calendar.MINUTE);
+            c.add(Calendar.MINUTE, mSubInterval - (min % mSubInterval));
+
+            return c.getTimeInMillis();
+        }
+
+        @Override
+        public CharSequence getTickLabel(float scale) {
+            return String.valueOf(c.get(Calendar.MINUTE));
+        }
+
+        @Override
+        public long getApproxPeriod() {
+            return DateUtils.MINUTE_IN_MILLIS * mSubInterval;
+        }
+    }
 
 	private static class HourInterval implements Interval {
 
@@ -363,6 +457,11 @@ public class TimelineEntry extends View {
 
 			return c.getTimeInMillis();
 		}
+
+        @Override
+        public CharSequence getTickLabel(float scale) {
+            return String.valueOf(c.get(Calendar.HOUR_OF_DAY));
+        }
 
 		@Override
 		public long getApproxPeriod() {
@@ -393,6 +492,11 @@ public class TimelineEntry extends View {
 		public long getApproxPeriod() {
 			return DateUtils.DAY_IN_MILLIS;
 		}
+
+        @Override
+        public CharSequence getTickLabel(float scale) {
+            return String.valueOf(c.get(Calendar.DAY_OF_MONTH));
+        }
 	}
 
 	private static class WeekInterval implements Interval {
@@ -419,11 +523,21 @@ public class TimelineEntry extends View {
 		public long getApproxPeriod() {
 			return DateUtils.WEEK_IN_MILLIS;
 		}
+
+        @Override
+        public CharSequence getTickLabel(float scale) {
+            return null;
+        }
 	}
 
 	private static class MonthInterval implements Interval {
 
 		private Calendar c;
+        private final Context mContext;
+
+        public MonthInterval(Context context) {
+            mContext = context;
+        }
 
 		public void startTicking(Calendar calendar) {
 			this.c = (Calendar) calendar.clone();
@@ -445,6 +559,14 @@ public class TimelineEntry extends View {
 		public long getApproxPeriod() {
 			return DateUtils.DAY_IN_MILLIS * 30;
 		}
+
+        @Override
+        public CharSequence getTickLabel(float scale) {
+            return DateUtils.formatDateTime(mContext, c.getTimeInMillis(), DateUtils.FORMAT_NO_YEAR
+                    | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NO_MONTH_DAY
+                    | DateUtils.FORMAT_NO_NOON_MIDNIGHT
+                    | (scale < 0.9 ? DateUtils.FORMAT_ABBREV_MONTH : 0));
+        }
 	}
 
 	private static class YearInterval implements Interval {
@@ -472,33 +594,11 @@ public class TimelineEntry extends View {
 		public long getApproxPeriod() {
 			return DateUtils.DAY_IN_MILLIS * 30 * 12;
 		}
-	}
 
-	private static class BasicInterval implements Interval {
-
-		private final long mInterval;
-
-		private long mStartTime;
-		private long xMarker;
-
-		public BasicInterval(long interval) {
-			mInterval = interval;
-		}
-
-		public void startTicking(Calendar calendar) {
-			mStartTime = calendar.getTimeInMillis();
-			xMarker = mStartTime - (mStartTime % mInterval);
-		}
-
-		public long getNextTick() {
-			xMarker += mInterval;
-			return xMarker;
-		}
-
-		@Override
-		public long getApproxPeriod() {
-			return mInterval;
-		}
+        @Override
+        public CharSequence getTickLabel(float scale) {
+            return String.valueOf(c.get(Calendar.YEAR));
+        }
 	}
 
 	public long getTime() {
