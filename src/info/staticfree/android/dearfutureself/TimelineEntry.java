@@ -37,6 +37,7 @@ public class TimelineEntry extends View {
 	private static final int DEFAULT_SCALE = 1000 * 60 * 60 * 24;
 
 	private static final int MIN_SCALE = 1000 * 60 * 5;
+    private static final long MAX_SCALE = DateUtils.YEAR_IN_MILLIS * 10;
 
 	private static final int MAJOR_TICK_SIZE = 40;
 	private static final int MINOR_TICK_SIZE = 10;
@@ -386,14 +387,14 @@ public class TimelineEntry extends View {
 
         /**
          * Gets the next marker. {@link #startTicking(Calendar)} must be called first.
-         * 
+         *
          * @return the next interval time, in Unix epoch time
          */
 		public long getNextTick();
 
         /**
          * Gets a label for the given tick.
-         * 
+         *
          * @param scale
          *            The zoom factor of the graph. 1.0 means it's the main item; 0.0 means it's
          *            almost invisible.
@@ -562,10 +563,14 @@ public class TimelineEntry extends View {
 
         @Override
         public CharSequence getTickLabel(float scale) {
-            return DateUtils.formatDateTime(mContext, c.getTimeInMillis(), DateUtils.FORMAT_NO_YEAR
-                    | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NO_MONTH_DAY
-                    | DateUtils.FORMAT_NO_NOON_MIDNIGHT
-                    | (scale < 0.9 ? DateUtils.FORMAT_ABBREV_MONTH : 0));
+
+            if ((scale < 0.8 && c.get(Calendar.MONTH) % 2 == 0) || scale >= 0.5) {
+                return DateUtils.formatDateTime(mContext, c.getTimeInMillis(),
+                        DateUtils.FORMAT_NO_YEAR | DateUtils.FORMAT_SHOW_DATE
+                                | DateUtils.FORMAT_NO_MONTH_DAY | DateUtils.FORMAT_NO_NOON_MIDNIGHT
+                                | (scale < 0.9 ? DateUtils.FORMAT_ABBREV_MONTH : 0));
+            }
+            return null;
         }
 	}
 
@@ -605,7 +610,7 @@ public class TimelineEntry extends View {
 		return (mEndTime - mStartTime) / 2 + mStartTime;
 	}
 
-	private void enforceMinimum() {
+	private void enforceLimits() {
 		final long curTime = getTime();
 		// ensure that the start time is never below the min time
 		if (curTime < mMinTime) {
@@ -619,6 +624,12 @@ public class TimelineEntry extends View {
 			mStartTime -= minOffset;
 			mEndTime += minOffset;
 		}
+
+        if (mEndTime - mStartTime > MAX_SCALE) {
+            final long minOffset = ((mEndTime - mStartTime) - MAX_SCALE) / 2;
+            mStartTime += minOffset;
+            mEndTime -= minOffset;
+        }
 	}
 
 	/**
@@ -673,7 +684,7 @@ public class TimelineEntry extends View {
 		mStartTime += offset;
 		mEndTime += offset;
 
-		enforceMinimum();
+		enforceLimits();
 
 		invalidate();
 		notifyListener();
@@ -692,7 +703,7 @@ public class TimelineEntry extends View {
 		mEndTime += offset;
 		mStartTime -= offset;
 
-		enforceMinimum();
+		enforceLimits();
 
 		invalidate();
 		notifyListener();
@@ -700,7 +711,7 @@ public class TimelineEntry extends View {
 
 	private void notifyListener() {
 		if (mOnChangeListener != null) {
-			mOnChangeListener.onChange(mStartTime + (mEndTime - mStartTime) / 2, mStartTime,
+            mOnChangeListener.onChange(getTime(), mStartTime,
 					mEndTime);
 		}
 	}
