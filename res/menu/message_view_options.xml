@@ -15,6 +15,7 @@
     <item
         android:id="@+id/share"
         android:icon="@drawable/ic_act_share"
+        android:visible="false"
         android:showAsAction="ifRoom|withText"
         android:title="@string/share_message"/>
     <item

@@ -105,7 +105,6 @@ public class TimelineEntry extends View {
 	};
 
 	private ScrollHandler mHandler;
-	private SunTimes mSunTimes;
 
 	private static final Paint RED_OUTLINE = new Paint();
 
