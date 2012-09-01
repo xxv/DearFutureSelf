@@ -7,46 +7,46 @@ import android.net.Uri;
 
 public class TwitterParser implements SharedTextParser {
 
-	private static final Pattern PARSE_RE = Pattern.compile("(.* has shared a Tweet with you):\\s*\"(.*)\"\\s*--(.+)");
+    private static final Pattern PARSE_RE = Pattern.compile("(.* has shared a Tweet with you):\\s*\"(.*)\"\\s*--(.+)");
 
-	private String mSubject, mBody;
-	private Uri mUri;
+    private String mSubject, mBody;
+    private Uri mUri;
 
-	@Override
-	public boolean parse(String text) {
-		final Matcher m = PARSE_RE.matcher(text);
-		if (! m.matches()){
-			return false;
-		}
+    @Override
+    public boolean parse(String text) {
+        final Matcher m = PARSE_RE.matcher(text);
+        if (! m.matches()){
+            return false;
+        }
 
-		mSubject = m.group(1);
-		mBody = m.group(2);
-		mUri = Uri.parse(m.group(3));
+        mSubject = m.group(1);
+        mBody = m.group(2);
+        mUri = Uri.parse(m.group(3));
 
-		return true;
-	}
+        return true;
+    }
 
-	@Override
-	public String getBody() {
+    @Override
+    public String getBody() {
 
-		return mBody;
-	}
+        return mBody;
+    }
 
-	@Override
-	public String getSubject() {
+    @Override
+    public String getSubject() {
 
-		return mSubject;
-	}
+        return mSubject;
+    }
 
-	@Override
-	public String getPackageName() {
-		return "com.twitter.android";
-	}
+    @Override
+    public String getPackageName() {
+        return "com.twitter.android";
+    }
 
-	@Override
-	public Uri getSubjectUri() {
+    @Override
+    public Uri getSubjectUri() {
 
-		return mUri;
-	}
+        return mUri;
+    }
 
 }

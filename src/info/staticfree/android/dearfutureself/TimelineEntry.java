@@ -75,11 +75,11 @@ public class TimelineEntry extends View {
     private VelocityTracker mVelocityTracker;
 
     //@formatter:off
-	private static final int
-		STATE_STILL = 0,
-		STATE_TRANSLATING = 1,
-		STATE_SCALING = 2;
-	//@formatter:on
+    private static final int
+        STATE_STILL = 0,
+        STATE_TRANSLATING = 1,
+        STATE_SCALING = 2;
+    //@formatter:on
 
     private int mState = STATE_STILL;
     private float mMaximumVelocity;

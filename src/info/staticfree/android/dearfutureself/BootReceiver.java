@@ -8,13 +8,13 @@ import android.util.Log;
 
 public class BootReceiver extends BroadcastReceiver {
 
-	@Override
-	public void onReceive(Context context, Intent intent) {
-		if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
 
-			Log.d("DearFutureSelf", "got boot message");
-			context.startService(new Intent(MessageService.ACTION_SCHEDULE_MESSAGE, Message
-					.getUriForStates(Message.STATE_IN_TRANSIT)));
-		}
-	}
+            Log.d("DearFutureSelf", "got boot message");
+            context.startService(new Intent(MessageService.ACTION_SCHEDULE_MESSAGE, Message
+                    .getUriForStates(Message.STATE_IN_TRANSIT)));
+        }
+    }
 }

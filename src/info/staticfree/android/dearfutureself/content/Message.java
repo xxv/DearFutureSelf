@@ -13,76 +13,76 @@ import edu.mit.mobile.android.content.column.TextColumn;
 
 public class Message implements ContentItem {
 
-	public static final String PATH = "message";
+    public static final String PATH = "message";
 
-	public static final int
-		STATE_DRAFT      = 0,
-		STATE_IN_TRANSIT = 1,
-		STATE_NEW        = 2,
-		STATE_READ       = 3,
-		STATE_DELETED	 = 4;
+    public static final int
+        STATE_DRAFT      = 0,
+        STATE_IN_TRANSIT = 1,
+        STATE_NEW        = 2,
+        STATE_READ       = 3,
+        STATE_DELETED    = 4;
 
-	@DBColumn(type=TextColumn.class, notnull = true)
-	public static final String SUBJECT = "subject";
+    @DBColumn(type=TextColumn.class, notnull = true)
+    public static final String SUBJECT = "subject";
 
-	@DBColumn(type=TextColumn.class)
-	public static final String BODY = "body";
+    @DBColumn(type=TextColumn.class)
+    public static final String BODY = "body";
 
-	@DBColumn(type=TextColumn.class)
-	public static final String TYPE = "type";
+    @DBColumn(type=TextColumn.class)
+    public static final String TYPE = "type";
 
-	@DBColumn(type=IntegerColumn.class, defaultValueInt = STATE_DRAFT)
-	public static final String STATE = "state";
+    @DBColumn(type=IntegerColumn.class, defaultValueInt = STATE_DRAFT)
+    public static final String STATE = "state";
 
-	@DBColumn(type=DatetimeColumn.class, defaultValue = DatetimeColumn.NOW_IN_MILLISECONDS)
-	public static final String DATE_SENT 			= "date_sent";
+    @DBColumn(type=DatetimeColumn.class, defaultValue = DatetimeColumn.NOW_IN_MILLISECONDS)
+    public static final String DATE_SENT            = "date_sent";
 
-	@DBColumn(type=DatetimeColumn.class, notnull = true)
-	public static final String DATE_ARRIVE = "date_arrive";
+    @DBColumn(type=DatetimeColumn.class, notnull = true)
+    public static final String DATE_ARRIVE = "date_arrive";
 
-	@DBColumn(type=IntegerColumn.class)
-	public static final String LOCATION_SENT_LAT 	= "location_sent_lat";
+    @DBColumn(type=IntegerColumn.class)
+    public static final String LOCATION_SENT_LAT    = "location_sent_lat";
 
-	@DBColumn(type=IntegerColumn.class)
-	public static final String LOCATION_SENT_LON 	= "location_sent_lon";
+    @DBColumn(type=IntegerColumn.class)
+    public static final String LOCATION_SENT_LON    = "location_sent_lon";
 
-	@DBColumn(type=TextColumn.class)
-	public static final String DESTINATION 		= "destination";
+    @DBColumn(type=TextColumn.class)
+    public static final String DESTINATION      = "destination";
 
-	public static final String SORT_DEFAULT = DATE_ARRIVE + " DESC";
+    public static final String SORT_DEFAULT = DATE_ARRIVE + " DESC";
 
-	public static boolean setState(ContentResolver cr, Uri message, int state){
-		final ContentValues cv = new ContentValues();
-		cv.put(STATE, state);
-		return cr.update(message, cv, null, null) == 1;
-	}
+    public static boolean setState(ContentResolver cr, Uri message, int state){
+        final ContentValues cv = new ContentValues();
+        cv.put(STATE, state);
+        return cr.update(message, cv, null, null) == 1;
+    }
 
-	public static final Uri
-		CONTENT_URI = ProviderUtils.toContentUri(MessageProvider.AUTHORITY, PATH);
+    public static final Uri
+        CONTENT_URI = ProviderUtils.toContentUri(MessageProvider.AUTHORITY, PATH);
 
-	public static final Uri NEW_MESSAGES = getUriForStates(STATE_NEW);
+    public static final Uri NEW_MESSAGES = getUriForStates(STATE_NEW);
 
-	/**
-	 * Constructs a Uri matching any of the provided states (joined with an "or").
-	 *
-	 * @param states
-	 *            a list of {@link #STATE_NEW}, {@link #STATE_READ}, etc.
-	 * @return a Uri matching the desired states
-	 */
-	public static Uri getUriForStates(int... states) {
-		final Builder msg = Message.CONTENT_URI.buildUpon();
+    /**
+     * Constructs a Uri matching any of the provided states (joined with an "or").
+     *
+     * @param states
+     *            a list of {@link #STATE_NEW}, {@link #STATE_READ}, etc.
+     * @return a Uri matching the desired states
+     */
+    public static Uri getUriForStates(int... states) {
+        final Builder msg = Message.CONTENT_URI.buildUpon();
 
-		boolean delimit = false;
+        boolean delimit = false;
 
-		for (final int state : states) {
-			msg.appendQueryParameter((delimit ? "|" : "") + Message.STATE, String.valueOf(state));
-			delimit = true;
-		}
+        for (final int state : states) {
+            msg.appendQueryParameter((delimit ? "|" : "") + Message.STATE, String.valueOf(state));
+            delimit = true;
+        }
 
-		return msg.build();
-	}
+        return msg.build();
+    }
 
-	public static final String
-		CONTENT_TYPE_DIR = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH,
-		CONTENT_TYPE_ITEM = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH;
+    public static final String
+        CONTENT_TYPE_DIR = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH,
+        CONTENT_TYPE_ITEM = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH;
 }
