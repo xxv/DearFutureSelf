@@ -1,4 +1,6 @@
-package info.staticfree.android.dearfutureself;
+package info.staticfree.android.widget;
+
+import info.staticfree.android.dearfutureself.R;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -403,8 +405,7 @@ public class TimelineEntry extends View {
                         mIntervalLabels.put(interval, intervalLabel);
                     }
                     canvas.drawText(intervalLabel, 0, intervalLabel.length(), w / 2, h
-                            - INTERVAL_LABEL_FROM_BOTTOM
-                            * mDisplayMetrics.scaledDensity,
+                            - INTERVAL_LABEL_FROM_BOTTOM * mDisplayMetrics.scaledDensity,
                             PAINT_INTERVAL_LABEL);
                     drawnIntervalLabel = true;
                 }

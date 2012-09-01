@@ -1,5 +1,6 @@
 package info.staticfree.android.dearfutureself;
 
+import info.staticfree.android.widget.TimelineEntry;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.text.format.DateUtils;

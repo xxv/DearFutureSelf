@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package info.staticfree.android.dearfutureself;
+package info.staticfree.android.widget;
 
 import android.content.Context;
 import android.hardware.SensorManager;

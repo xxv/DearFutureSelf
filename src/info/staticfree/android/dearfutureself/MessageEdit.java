@@ -1,8 +1,9 @@
 package info.staticfree.android.dearfutureself;
 
-import info.staticfree.android.dearfutureself.TimelineEntry.OnChangeListener;
 import info.staticfree.android.dearfutureself.content.Message;
 import info.staticfree.android.dearfutureself.sharedtext.SharedTextExtractor;
+import info.staticfree.android.widget.TimelineEntry;
+import info.staticfree.android.widget.TimelineEntry.OnChangeListener;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
