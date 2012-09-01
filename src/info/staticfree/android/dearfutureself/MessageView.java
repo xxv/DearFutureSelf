@@ -6,40 +6,35 @@ import info.staticfree.android.dearfutureself.content.MessageUtils.SetStateTask;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.format.DateUtils;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 
-import com.markupartist.android.widget.ActionBar;
+import com.actionbarsherlock.ActionBarSherlock;
+import com.actionbarsherlock.ActionBarSherlock.OnCreateOptionsMenuListener;
+import com.actionbarsherlock.ActionBarSherlock.OnOptionsItemSelectedListener;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
-public class MessageView extends FragmentActivity implements LoaderCallbacks<Cursor> {
+public class MessageView extends FragmentActivity implements LoaderCallbacks<Cursor>,
+        OnCreateOptionsMenuListener, OnOptionsItemSelectedListener {
 
     private int mMessageState;
 
-    private ActionBar mActionBar;
+    private final ActionBarSherlock mSherlock = ActionBarSherlock.wrap(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.message_view);
+        mSherlock.setContentView(R.layout.message_view);
 
         getSupportLoaderManager().initLoader(0, null, this);
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            mActionBar = (ActionBar) findViewById(R.id.actionbar);
-            mActionBar.setTitle(getTitle());
-            final Menu menu = mActionBar.asMenu();
-            getMenuInflater().inflate(R.menu.message_view_options, menu);
-            menu.findItem(R.id.view).setVisible(false); // already viewing!
-        }
     }
 
     private Intent createShareIntent() {
@@ -66,7 +61,6 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
         if (mMessageState == Message.STATE_NEW){
             new MessageUtils.SetStateTask(this).execute(getIntent().getData(), Message.STATE_READ);
         }
-
     }
 
     @Override
@@ -86,8 +80,7 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.message_view_options, menu);
+        mSherlock.getMenuInflater().inflate(R.menu.message_view_options, menu);
         menu.findItem(R.id.view).setVisible(false); // already viewing!
         return true;
     }
@@ -112,8 +105,22 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
             return true;
 
             default:
-                return super.onOptionsItemSelected(item);
+                return false;
         }
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        return mSherlock.dispatchCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(android.view.Menu menu) {
+        return mSherlock.dispatchPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(android.view.MenuItem item) {
+        return mSherlock.dispatchOptionsItemSelected(item);
     }
 }

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-        <style name="DearFutureSelfTheme" parent="@style/Theme.ActionBar"/>
+
+    <style name="DearFutureSelfTheme" parent="Theme.Sherlock" />
+
 </resources>

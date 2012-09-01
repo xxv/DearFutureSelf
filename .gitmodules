@@ -1,6 +1,6 @@
-[submodule "libs-src/android-actionbar"]
-	path = libs-src/android-actionbar
-	url = https://github.com/johannilsson/android-actionbar.git
 [submodule "libs-src/SimpleContentProvider"]
 	path = libs-src/SimpleContentProvider
 	url = https://github.com/mitmel/SimpleContentProvider.git
+[submodule "libs-src/ActionBarSherlock"]
+	path = libs-src/ActionBarSherlock
+	url = https://github.com/JakeWharton/ActionBarSherlock.git

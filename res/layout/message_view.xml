@@ -1,49 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:layout_height="fill_parent" >
 
-    <include
-        android:id="@+id/actionbar"
-        layout="@layout/action_bar" />
-
-    <ScrollView
-        android:id="@+id/scrollView1"
+    <LinearLayout
+        android:id="@+id/linearLayout1"
         android:layout_width="fill_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1" >
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dip"
+        android:orientation="vertical"
+        android:padding="10dip" >
 
-        <LinearLayout
-            android:id="@+id/linearLayout1"
-            android:layout_width="fill_parent"
+        <TextView
+            android:id="@+id/subject"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dip"
-            android:orientation="vertical"
-            android:padding="10dip" >
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" >
+        </TextView>
 
-            <TextView
-                android:id="@+id/subject"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textStyle="bold" >
-            </TextView>
+        <TextView
+            android:id="@+id/sent_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+        </TextView>
 
-            <TextView
-                android:id="@+id/sent_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
-            </TextView>
+        <TextView
+            android:id="@+id/body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dip"
+            android:autoLink="all" >
+        </TextView>
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/body"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dip"
-                android:autoLink="all" >
-            </TextView>
-        </LinearLayout>
-    </ScrollView>
-
-</LinearLayout>
+</ScrollView>

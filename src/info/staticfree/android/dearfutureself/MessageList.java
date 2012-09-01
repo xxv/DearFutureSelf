@@ -6,17 +6,15 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -25,14 +23,21 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.markupartist.android.widget.ActionBar;
+import com.actionbarsherlock.ActionBarSherlock;
+import com.actionbarsherlock.ActionBarSherlock.OnCreateOptionsMenuListener;
+import com.actionbarsherlock.ActionBarSherlock.OnOptionsItemSelectedListener;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 public class MessageList extends FragmentActivity implements LoaderCallbacks<Cursor>,
-        OnClickListener, OnItemClickListener {
+        OnClickListener, OnItemClickListener, OnOptionsItemSelectedListener,
+        OnCreateOptionsMenuListener {
 
     private CursorAdapter mListAdapter;
 
-    private ActionBar mActionBar;
+    private final ActionBarSherlock mSherlock = ActionBarSherlock.wrap(this);
+
+    private ListView mList;
 
     public static final Uri INBOX_URI = Message.getUriForStates(Message.STATE_NEW,
             Message.STATE_READ);
@@ -41,27 +46,22 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        mSherlock.requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        mSherlock.setContentView(R.layout.main);
 
         // re-applied here, as the label for the launcher is shorter
-        setTitle(R.string.app_name);
+        mSherlock.setTitle(R.string.app_name);
 
         mListAdapter = new MessageListAdapter(this);
 
-        final ListView list = (ListView) findViewById(android.R.id.list);
-        list.setAdapter(mListAdapter);
-        list.setEmptyView(findViewById(android.R.id.empty));
-        list.setOnItemClickListener(this);
-        list.setOnCreateContextMenuListener(this);
+        mList = (ListView) findViewById(android.R.id.list);
+        mList.setAdapter(mListAdapter);
+        mList.setOnItemClickListener(this);
+        mList.setOnCreateContextMenuListener(this);
 
         onNewIntent(getIntent());
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            mActionBar = (ActionBar) findViewById(R.id.actionbar);
-            getMenuInflater().inflate(R.menu.message_list_options, mActionBar.asMenu());
-        }
     }
 
     @Override
@@ -90,10 +90,8 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-        setProgressBarVisibility(true);
-        if (mActionBar != null) {
-            mActionBar.setProgressBarVisibility(View.VISIBLE);
-        }
+        Log.d(TAG, "onCreateLoader");
+        mSherlock.setProgressBarIndeterminateVisibility(true);
 
         return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION, null,
                 null, Message.SORT_DEFAULT);
@@ -101,16 +99,16 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
+        Log.d(TAG, "onLoadFinished");
         mListAdapter.swapCursor(c);
-        if (mActionBar != null) {
-            mActionBar.setProgressBarVisibility(View.GONE);
-        }
-        setProgressBarVisibility(false);
+        mSherlock.setProgressBarIndeterminateVisibility(false);
+        mList.setEmptyView(findViewById(android.R.id.empty));
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> arg0) {
         mListAdapter.swapCursor(null);
+        mList.setEmptyView(null);
     }
 
     @Override
@@ -126,7 +124,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     }
 
     @Override
-    public boolean onContextItemSelected(MenuItem item) {
+    public boolean onContextItemSelected(android.view.MenuItem item) {
         final Uri baseUri = getIntent().getData();
         AdapterView.AdapterContextMenuInfo info;
         try {
@@ -156,6 +154,12 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     }
 
     @Override
+    public boolean onOptionsItemSelected(android.view.MenuItem item) {
+        return mSherlock.dispatchOptionsItemSelected(item);
+
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add:
@@ -166,7 +170,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
                 startActivity(new Intent(this, ImportExport.class));
                 return true;
             default:
-                return super.onOptionsItemSelected(item);
+                return false;
         }
     }
 
@@ -178,9 +182,14 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     }
 
     @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        return mSherlock.dispatchCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.message_list_options, menu);
-        return super.onCreateOptionsMenu(menu);
+        mSherlock.getMenuInflater().inflate(R.menu.message_list_options, menu);
+        return true;
     }
 
 }

@@ -1,86 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:fillViewport="true" >
 
-    <include
-        android:id="@+id/actionbar"
-        layout="@layout/action_bar" />
-
-    <ScrollView
+    <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1"
-        android:fillViewport="true" >
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/timeline_value"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:gravity="center_horizontal" />
 
-            <TextView
-                android:id="@+id/timeline_value"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal" />
+        <info.staticfree.android.dearfutureself.TimelineEntry
+            android:id="@+id/timeline"
+            android:layout_width="fill_parent"
+            android:layout_height="100dip"
+            android:background="@drawable/timeline_background" />
 
-            <info.staticfree.android.dearfutureself.TimelineEntry
-                android:id="@+id/timeline"
-                android:layout_width="fill_parent"
-                android:layout_height="100dip"
-                android:background="@drawable/timeline_background" />
+        <AutoCompleteTextView
+            android:id="@+id/destination"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_destination"
+            android:imeOptions="actionNext"
+            android:inputType="textEmailAddress"
+            android:visibility="gone" />
 
-            <AutoCompleteTextView
-                android:id="@+id/destination"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hint_destination"
-                android:imeOptions="actionNext"
-                android:inputType="textEmailAddress"
-                android:visibility="gone" />
+        <EditText
+            android:id="@+id/subject"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_subject"
+            android:imeOptions="actionNext"
+            android:inputType="textEmailSubject|textAutoCorrect|textCapSentences|textImeMultiLine"
+            android:singleLine="true" />
 
-            <EditText
-                android:id="@+id/subject"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hint_subject"
-                android:imeOptions="actionNext"
-                android:inputType="textEmailSubject|textAutoCorrect|textCapSentences|textImeMultiLine"
-                android:singleLine="true" />
+        <EditText
+            android:id="@+id/body"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top|left"
+            android:hint="@string/hint_body"
+            android:imeOptions="actionDone|flagNoEnterAction"
+            android:inputType="textMultiLine|textAutoCorrect|textCapSentences"
+            android:minLines="3" />
+    </LinearLayout>
 
-            <EditText
-                android:id="@+id/body"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:gravity="top|left"
-                android:hint="@string/hint_body"
-                android:imeOptions="actionDone|flagNoEnterAction"
-                android:inputType="textMultiLine|textAutoCorrect|textCapSentences"
-                android:minLines="3" />
-        </LinearLayout>
-    </ScrollView>
-    <!--
-     	<LinearLayout
-		android:orientation="horizontal"
-		android:layout_height="wrap_content"
-		android:layout_width="fill_parent"
-		android:gravity="bottom"
-		android:layout_gravity="bottom"
-		style="@android:style/ButtonBar"
-	>
-		<Button
-			android:text="@string/send"
-			android:id="@+id/done"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content" />
-
-		<Button
-			android:text="@android:string/cancel"
-			android:id="@+id/cancel"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content" />
-	</LinearLayout>
-    -->
-
-</LinearLayout>
+</ScrollView>
