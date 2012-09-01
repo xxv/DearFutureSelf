@@ -32,4 +32,11 @@
     <string name="permission_write_dear_future_self_messages_label">Modify Dear Future Self messages</string>
     <string name="permission_write_dear_future_self_messages_description">Allows app to create, modify, and delete Dear Future Self messages</string>
 
+    <string name="minutes">minutes</string>
+    <string name="hours">hours</string>
+    <string name="days">days</string>
+    <string name="weeks">weeks</string>
+    <string name="months">months</string>
+    <string name="years">years</string>
+    
 </resources>

@@ -1,6 +1,7 @@
 package info.staticfree.android.dearfutureself;
 
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import android.content.Context;
@@ -31,9 +32,13 @@ public class TimelineEntry extends View {
     long mStartTime, mEndTime;
     long mMinTime = 0;
 
+    private Context mContext;
+
     private static final Paint PAINT_AXIS = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final Paint PAINT_TICK = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final Paint PAINT_DISABLED = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private static final Paint RED_OUTLINE = new Paint();
 
     // ms → s → m → h → d
     private static final int DEFAULT_SCALE = 1000 * 60 * 60 * 24;
@@ -51,6 +56,9 @@ public class TimelineEntry extends View {
 
     private static final int TICK_LINE_SIZE = 4;
 
+    /**
+     * the point in the scale where odd-numbered labels are skipped.
+     */
     private static final float FULL_LABELING_CUTOFF = 0.7f;
 
     private Drawable mMarker;
@@ -113,13 +121,18 @@ public class TimelineEntry extends View {
 
     private ScrollHandler mHandler;
 
-    private static final Paint RED_OUTLINE = new Paint();
-
     /**
      * ms that the pointer must be held down to stop scrolling.
      */
     private static final long STOP_SCROLLING_DELAY = 200;
     private static final Paint PAINT_TICK_LABEL = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private static final Paint PAINT_INTERVAL_LABEL = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * How far up from the bottom the label is
+     */
+    private static final float INTERVAL_LABEL_FROM_BOTTOM = 6;
+    private static final float INTERVAL_LABEL_TEXT_SIZE = 12;
 
     static {
         PAINT_AXIS.setARGB(192, 0, 0, 0);
@@ -131,8 +144,10 @@ public class TimelineEntry extends View {
         PAINT_TICK.setStrokeWidth(2);
 
         PAINT_TICK_LABEL.setARGB(255, 127, 127, 127);
-        PAINT_TICK_LABEL.setTextSize(20);
         PAINT_TICK_LABEL.setTextAlign(Align.CENTER);
+
+        PAINT_INTERVAL_LABEL.setARGB(255, 127, 127, 127);
+        PAINT_INTERVAL_LABEL.setTextAlign(Align.CENTER);
 
         PAINT_DISABLED.setARGB(48, 0, 0, 0);
         PAINT_DISABLED.setStyle(Style.FILL);
@@ -184,6 +199,10 @@ public class TimelineEntry extends View {
         wm.getDefaultDisplay().getMetrics(mDisplayMetrics);
 
         mTickLineSize = mDisplayMetrics.scaledDensity * TICK_LINE_SIZE;
+
+        PAINT_INTERVAL_LABEL.setTextSize(INTERVAL_LABEL_TEXT_SIZE * mDisplayMetrics.scaledDensity);
+
+        mContext = context;
     }
 
     @Override
@@ -300,6 +319,8 @@ public class TimelineEntry extends View {
     Calendar mCalendar;
     private float mTickLineSize;
 
+    private final HashMap<Interval, CharSequence> mIntervalLabels = new HashMap<TimelineEntry.Interval, CharSequence>();
+
     @Override
     protected void onDraw(Canvas canvas) {
         final int w = mWidth;
@@ -331,6 +352,9 @@ public class TimelineEntry extends View {
 
         mDrawnTicks.clear();
 
+        CharSequence intervalLabel;
+
+        boolean drawnIntervalLabel = false;
         for (final Interval interval : mIntervals) {
             final long fullCount = timelineW / interval.getApproxPeriod();
 
@@ -371,6 +395,18 @@ public class TimelineEntry extends View {
                     }
 
                     mDrawnTicks.add(xMarker);
+                }
+                if (!drawnIntervalLabel) {
+                    intervalLabel = mIntervalLabels.get(interval);
+                    if (intervalLabel == null) {
+                        intervalLabel = interval.getLabel(mContext, scale);
+                        mIntervalLabels.put(interval, intervalLabel);
+                    }
+                    canvas.drawText(intervalLabel, 0, intervalLabel.length(), w / 2, h
+                            - INTERVAL_LABEL_FROM_BOTTOM
+                            * mDisplayMetrics.scaledDensity,
+                            PAINT_INTERVAL_LABEL);
+                    drawnIntervalLabel = true;
                 }
             }
         }
@@ -418,6 +454,8 @@ public class TimelineEntry extends View {
          * @return the label of the same tick that was returned in {@link #getNextTick()}.
          */
         public CharSequence getTickLabel(float scale);
+
+        public CharSequence getLabel(Context context, float scale);
     }
 
     private static class MinuteInterval implements Interval {
@@ -464,6 +502,11 @@ public class TimelineEntry extends View {
         public long getApproxPeriod() {
             return DateUtils.MINUTE_IN_MILLIS * mSubInterval;
         }
+
+        @Override
+        public CharSequence getLabel(Context context, float scale) {
+            return context.getText(R.string.minutes);
+        }
     }
 
     private static class HourInterval implements Interval {
@@ -493,6 +536,11 @@ public class TimelineEntry extends View {
         @Override
         public long getApproxPeriod() {
             return DateUtils.HOUR_IN_MILLIS;
+        }
+
+        @Override
+        public CharSequence getLabel(Context context, float scale) {
+            return context.getText(R.string.hours);
         }
     }
 
@@ -524,6 +572,11 @@ public class TimelineEntry extends View {
         public CharSequence getTickLabel(float scale) {
             return String.valueOf(c.get(Calendar.DAY_OF_MONTH));
         }
+
+        @Override
+        public CharSequence getLabel(Context context, float scale) {
+            return context.getText(R.string.days);
+        }
     }
 
     private static class WeekInterval implements Interval {
@@ -554,6 +607,11 @@ public class TimelineEntry extends View {
         @Override
         public CharSequence getTickLabel(float scale) {
             return null;
+        }
+
+        @Override
+        public CharSequence getLabel(Context context, float scale) {
+            return context.getText(R.string.weeks);
         }
     }
 
@@ -601,6 +659,11 @@ public class TimelineEntry extends View {
             }
             return null;
         }
+
+        @Override
+        public CharSequence getLabel(Context context, float scale) {
+            return context.getText(R.string.months);
+        }
     }
 
     private static class YearInterval implements Interval {
@@ -632,6 +695,11 @@ public class TimelineEntry extends View {
         @Override
         public CharSequence getTickLabel(float scale) {
             return String.valueOf(c.get(Calendar.YEAR));
+        }
+
+        @Override
+        public CharSequence getLabel(Context context, float scale) {
+            return context.getText(R.string.years);
         }
     }
 
