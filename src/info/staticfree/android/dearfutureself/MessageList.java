@@ -51,7 +51,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         mSherlock.setContentView(R.layout.main);
 
         // re-applied here, as the label for the launcher is shorter
-        mSherlock.setTitle(R.string.app_name);
+        setTitle(R.string.app_name);
 
         mListAdapter = new MessageListAdapter(this);
 
@@ -62,7 +62,6 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         mList.setEmptyView(findViewById(android.R.id.empty));
 
         onNewIntent(getIntent());
-
     }
 
     @Override
@@ -98,6 +97,12 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
         return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION, null,
                 null, Message.SORT_DEFAULT);
+    }
+
+    @Override
+    protected void onTitleChanged(CharSequence title, int color) {
+        mSherlock.dispatchTitleChanged(title, color);
+        super.onTitleChanged(title, color);
     }
 
     @Override
