@@ -59,6 +59,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         mList.setAdapter(mListAdapter);
         mList.setOnItemClickListener(this);
         mList.setOnCreateContextMenuListener(this);
+        mList.setEmptyView(findViewById(android.R.id.empty));
 
         onNewIntent(getIntent());
 
@@ -93,6 +94,8 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         Log.d(TAG, "onCreateLoader");
         mSherlock.setProgressBarIndeterminateVisibility(true);
 
+        findViewById(android.R.id.empty).setVisibility(View.INVISIBLE);
+
         return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION, null,
                 null, Message.SORT_DEFAULT);
     }
@@ -102,7 +105,6 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         Log.d(TAG, "onLoadFinished");
         mListAdapter.swapCursor(c);
         mSherlock.setProgressBarIndeterminateVisibility(false);
-        mList.setEmptyView(findViewById(android.R.id.empty));
     }
 
     @Override
