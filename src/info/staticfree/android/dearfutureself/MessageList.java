@@ -45,6 +45,9 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        // re-applied here, as the label for the launcher is shorter
+        setTitle(R.string.app_name);
+
         mListAdapter = new MessageListAdapter(this);
 
         final ListView list = (ListView) findViewById(android.R.id.list);

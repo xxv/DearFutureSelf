@@ -60,7 +60,7 @@
         -->
         <activity
             android:name=".MessageList"
-            android:label="@string/app_name"
+            android:label="@string/app_name_shorter"
             android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
