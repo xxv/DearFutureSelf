@@ -16,357 +16,375 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
+import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 
 public class TimelineEntry extends View {
-	@SuppressWarnings("unused")
-	private static final String TAG = TimelineEntry.class.getSimpleName();
-	long mStartTime, mEndTime;
-	long mMinTime = 0;
+    @SuppressWarnings("unused")
+    private static final String TAG = TimelineEntry.class.getSimpleName();
+    long mStartTime, mEndTime;
+    long mMinTime = 0;
 
-	private static final Paint PAINT_AXIS = new Paint(Paint.ANTI_ALIAS_FLAG);
-	private static final Paint PAINT_TICK = new Paint(Paint.ANTI_ALIAS_FLAG);
-	private static final Paint PAINT_DISABLED = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private static final Paint PAINT_AXIS = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private static final Paint PAINT_TICK = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private static final Paint PAINT_DISABLED = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-	// ms → s → m → h → d
-	private static final int DEFAULT_SCALE = 1000 * 60 * 60 * 24;
+    // ms → s → m → h → d
+    private static final int DEFAULT_SCALE = 1000 * 60 * 60 * 24;
 
-	private static final int MIN_SCALE = 1000 * 60 * 5;
+    private static final int MIN_SCALE = 1000 * 60 * 5;
     private static final long MAX_SCALE = DateUtils.YEAR_IN_MILLIS * 10;
 
-	private static final int MAJOR_TICK_SIZE = 40;
-	private static final int MINOR_TICK_SIZE = 10;
+    private int mMajorTickSize = 40;
+    private int mMinorTickSize = 10;
 
-    private static final int TICK_LABEL_SIZE_LARGE = 20;
-    private static final int TICK_LABEL_SIZE_SMALL = 6;
+    private int TICK_LABEL_SIZE_LARGE = 20;
+    private int TICK_LABEL_SIZE_SMALL = 6;
 
-	private final int X_SCALE = 60 * 60 * 1000;
-	private final int X_SCALE_SMALL = 15 * 60 * 1000;
+    private final int TICK_LABEL_SPACING = 3;
 
-	private Drawable mMarker;
+    private static final int TICK_LINE_SIZE = 4;
 
-	private OnChangeListener mOnChangeListener;
+    private static final float FULL_LABELING_CUTOFF = 0.7f;
 
-	private int mWidth, mHeight;
+    private Drawable mMarker;
 
-	private int mPaddingLeft, mPaddingRight, mPaddingTop, mPaddingBottom;
+    private final DisplayMetrics mDisplayMetrics = new DisplayMetrics();
 
-	private float mScaleX;
-	private float mMultX;
+    private OnChangeListener mOnChangeListener;
 
-	private float mPrevX;
-	private float mPrevX1;
+    private int mWidth, mHeight;
 
-	private float mPrevY;
+    private int mPaddingLeft, mPaddingRight, mPaddingTop, mPaddingBottom;
 
-	private Scroller mScroller;
-	private VelocityTracker mVelocityTracker;
+    private float mScaleX;
+    private float mMultX;
 
-	//@formatter:off
+    private float mPrevX;
+    private float mPrevX1;
+
+    private float mPrevY;
+
+    private Scroller mScroller;
+    private VelocityTracker mVelocityTracker;
+
+    //@formatter:off
 	private static final int
 		STATE_STILL = 0,
 		STATE_TRANSLATING = 1,
 		STATE_SCALING = 2;
 	//@formatter:on
 
-	private int mState = STATE_STILL;
-	private float mMaximumVelocity;
-	private int mTouchSlop; // TODO use this
-	private int mMinimumVelocity;
-	private int mActivePointerId;
-	private int mScrollX;
-	private int mScrollY;
+    private int mState = STATE_STILL;
+    private float mMaximumVelocity;
+    private int mTouchSlop; // TODO use this
+    private int mMinimumVelocity;
+    private int mActivePointerId;
+    private int mScrollX;
+    private int mScrollY;
 
     private Interval[] mIntervals;
     private final HashSet<Long> mDrawnTicks = new HashSet<Long>();
 
-	private static final int MSG_STOP_SCROLLING = 100;
+    private static final int MSG_STOP_SCROLLING = 100;
 
-	private static class ScrollHandler extends Handler {
-		private final Scroller mScroller;
+    private static class ScrollHandler extends Handler {
+        private final Scroller mScroller;
 
-		public ScrollHandler(Scroller scroller) {
-			mScroller = scroller;
-		}
+        public ScrollHandler(Scroller scroller) {
+            mScroller = scroller;
+        }
 
-		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-				case MSG_STOP_SCROLLING:
-					mScroller.abortAnimation();
-					break;
-			}
-		};
-	};
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_STOP_SCROLLING:
+                    mScroller.abortAnimation();
+                    break;
+            }
+        };
+    };
 
-	private ScrollHandler mHandler;
+    private ScrollHandler mHandler;
 
-	private static final Paint RED_OUTLINE = new Paint();
+    private static final Paint RED_OUTLINE = new Paint();
 
-	/**
-	 * ms that the pointer must be held down to stop scrolling.
-	 */
-	private static final long STOP_SCROLLING_DELAY = 200;
+    /**
+     * ms that the pointer must be held down to stop scrolling.
+     */
+    private static final long STOP_SCROLLING_DELAY = 200;
     private static final Paint PAINT_TICK_LABEL = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-	static {
-		PAINT_AXIS.setARGB(192, 0, 0, 0);
-		PAINT_AXIS.setStyle(Style.STROKE);
-		PAINT_AXIS.setStrokeWidth(2);
+    static {
+        PAINT_AXIS.setARGB(192, 0, 0, 0);
+        PAINT_AXIS.setStyle(Style.STROKE);
+        PAINT_AXIS.setStrokeWidth(2);
 
-		PAINT_TICK.setARGB(128, 0, 0, 0);
-		PAINT_TICK.setStyle(Style.STROKE);
-		PAINT_TICK.setStrokeWidth(2);
+        PAINT_TICK.setARGB(128, 0, 0, 0);
+        PAINT_TICK.setStyle(Style.STROKE);
+        PAINT_TICK.setStrokeWidth(2);
 
         PAINT_TICK_LABEL.setARGB(255, 127, 127, 127);
         PAINT_TICK_LABEL.setTextSize(20);
         PAINT_TICK_LABEL.setTextAlign(Align.CENTER);
 
-		PAINT_DISABLED.setARGB(48, 0, 0, 0);
-		PAINT_DISABLED.setStyle(Style.FILL);
+        PAINT_DISABLED.setARGB(48, 0, 0, 0);
+        PAINT_DISABLED.setStyle(Style.FILL);
 
-		RED_OUTLINE.setColor(Color.RED);
-		RED_OUTLINE.setStyle(Style.STROKE);
-		RED_OUTLINE.setStrokeWidth(0);
-	}
+        RED_OUTLINE.setColor(Color.RED);
+        RED_OUTLINE.setStyle(Style.STROKE);
+        RED_OUTLINE.setStrokeWidth(0);
+    }
 
-	public TimelineEntry(Context context) {
-		super(context);
-		init(context);
-	}
+    public TimelineEntry(Context context) {
+        super(context);
+        init(context);
+    }
 
-	public TimelineEntry(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		init(context);
-	}
+    public TimelineEntry(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(context);
+    }
 
-	public TimelineEntry(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
-		init(context);
-	}
+    public TimelineEntry(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(context);
+    }
 
-	private void init(Context context) {
+    private void init(Context context) {
         mIntervals = new Interval[] { new YearInterval(), new MonthInterval(context),
                 new WeekInterval(), new DayInterval(), new HourInterval(),
- new MinuteInterval(15),
-                new MinuteInterval() };
+                new MinuteInterval(15, true), new MinuteInterval() };
 
-		mMarker = context.getResources().getDrawable(R.drawable.timeline_marker);
+        mMarker = context.getResources().getDrawable(R.drawable.timeline_marker);
 
-		mScroller = new Scroller(context, new DecelerateInterpolator(), true);
-		mHandler = new ScrollHandler(mScroller);
+        mScroller = new Scroller(context, new DecelerateInterpolator(), true);
+        mHandler = new ScrollHandler(mScroller);
 
-		final ViewConfiguration configuration = ViewConfiguration.get(context);
-		mTouchSlop = configuration.getScaledTouchSlop();
-		mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
-		mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
+        final ViewConfiguration configuration = ViewConfiguration.get(context);
+        mTouchSlop = configuration.getScaledTouchSlop();
+        mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
+        mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
 
-		if (mStartTime == 0) {
-			mEndTime = System.currentTimeMillis();
+        if (mStartTime == 0) {
+            mEndTime = System.currentTimeMillis();
 
-			mStartTime = mEndTime - DEFAULT_SCALE;
-		}
+            mStartTime = mEndTime - DEFAULT_SCALE;
+        }
 
-		mCalendar = Calendar.getInstance();
-	}
+        mCalendar = Calendar.getInstance();
 
-	@Override
-	protected Parcelable onSaveInstanceState() {
-		final Parcelable superState = super.onSaveInstanceState();
-		final SavedState ss = new SavedState(superState, mStartTime, mEndTime);
-		return ss;
-	}
+        final WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getMetrics(mDisplayMetrics);
 
-	@Override
-	protected void onRestoreInstanceState(Parcelable state) {
-		if (!(state instanceof SavedState)) {
-			super.onRestoreInstanceState(state);
-			return;
-		}
+        mTickLineSize = mDisplayMetrics.scaledDensity * TICK_LINE_SIZE;
+    }
 
-		final SavedState ss = (SavedState) state;
-		super.onRestoreInstanceState(ss.getSuperState());
-		mStartTime = ss.mStartTime;
-		mEndTime = ss.mEndTime;
-	}
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        final Parcelable superState = super.onSaveInstanceState();
+        final SavedState ss = new SavedState(superState, mStartTime, mEndTime);
+        return ss;
+    }
 
-	private static class SavedState extends BaseSavedState {
-		private final long mStartTime;
-		private final long mEndTime;
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
 
-		public SavedState(Parcelable superState, long startTime, long endTime) {
-			super(superState);
-			mStartTime = startTime;
-			mEndTime = endTime;
-		}
+        final SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        mStartTime = ss.mStartTime;
+        mEndTime = ss.mEndTime;
+    }
 
-		public SavedState(Parcel in) {
-			super(in);
+    private static class SavedState extends BaseSavedState {
+        private final long mStartTime;
+        private final long mEndTime;
 
-			mStartTime = in.readLong();
-			mEndTime = in.readLong();
-		}
+        public SavedState(Parcelable superState, long startTime, long endTime) {
+            super(superState);
+            mStartTime = startTime;
+            mEndTime = endTime;
+        }
 
-		@Override
-		public void writeToParcel(Parcel dest, int flags) {
-			super.writeToParcel(dest, flags);
-			dest.writeLong(mStartTime);
-			dest.writeLong(mEndTime);
-		}
+        public SavedState(Parcel in) {
+            super(in);
 
-		@SuppressWarnings("unused")
-		public static final Parcelable.Creator<SavedState> CREATOR = new Creator<TimelineEntry.SavedState>() {
+            mStartTime = in.readLong();
+            mEndTime = in.readLong();
+        }
 
-			@Override
-			public SavedState[] newArray(int size) {
-				return new SavedState[size];
-			}
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            super.writeToParcel(dest, flags);
+            dest.writeLong(mStartTime);
+            dest.writeLong(mEndTime);
+        }
 
-			@Override
-			public SavedState createFromParcel(Parcel source) {
-				return new SavedState(source);
-			}
-		};
-	}
+        @SuppressWarnings("unused")
+        public static final Parcelable.Creator<SavedState> CREATOR = new Creator<TimelineEntry.SavedState>() {
 
-	public void setOnChangeListener(OnChangeListener onChangeListener) {
-		mOnChangeListener = onChangeListener;
-	}
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
 
-	@Override
-	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		int measuredWidth = View.MeasureSpec.getSize(widthMeasureSpec), measuredHeight = View.MeasureSpec
-				.getSize(heightMeasureSpec);
+            @Override
+            public SavedState createFromParcel(Parcel source) {
+                return new SavedState(source);
+            }
+        };
+    }
 
-		switch (View.MeasureSpec.getMode(widthMeasureSpec)) {
-			case View.MeasureSpec.UNSPECIFIED:
-				measuredWidth = getBackground().getIntrinsicWidth();
-				break;
-			case View.MeasureSpec.AT_MOST:
+    public void setOnChangeListener(OnChangeListener onChangeListener) {
+        mOnChangeListener = onChangeListener;
+    }
 
-				break;
-			case View.MeasureSpec.EXACTLY:
-				// already set!
-				break;
-		}
-		switch (View.MeasureSpec.getMode(heightMeasureSpec)) {
-			case View.MeasureSpec.UNSPECIFIED:
-				measuredHeight = getBackground().getIntrinsicHeight();
-				break;
-			case View.MeasureSpec.AT_MOST:
-				measuredHeight = getBackground().getIntrinsicHeight();
-				break;
-			case View.MeasureSpec.EXACTLY:
-				// already set!
-				break;
-		}
-		setMeasuredDimension(measuredWidth, measuredHeight);
-	}
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int measuredWidth = View.MeasureSpec.getSize(widthMeasureSpec), measuredHeight = View.MeasureSpec
+                .getSize(heightMeasureSpec);
 
-	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		super.onSizeChanged(w, h, oldw, oldh);
-		mPaddingLeft = getPaddingLeft();
-		mPaddingRight = getPaddingRight();
-		mPaddingBottom = getPaddingBottom();
-		mPaddingTop = getPaddingTop();
-		mWidth = w - (mPaddingLeft) - mPaddingRight;
-		mHeight = h - (mPaddingTop) - mPaddingBottom;
-	}
+        switch (View.MeasureSpec.getMode(widthMeasureSpec)) {
+            case View.MeasureSpec.UNSPECIFIED:
+                measuredWidth = getBackground().getIntrinsicWidth();
+                break;
+            case View.MeasureSpec.AT_MOST:
 
-	Calendar mCalendar;
+                break;
+            case View.MeasureSpec.EXACTLY:
+                // already set!
+                break;
+        }
+        switch (View.MeasureSpec.getMode(heightMeasureSpec)) {
+            case View.MeasureSpec.UNSPECIFIED:
+                measuredHeight = getBackground().getIntrinsicHeight();
+                break;
+            case View.MeasureSpec.AT_MOST:
+                measuredHeight = getBackground().getIntrinsicHeight();
+                break;
+            case View.MeasureSpec.EXACTLY:
+                // already set!
+                break;
+        }
+        setMeasuredDimension(measuredWidth, measuredHeight);
+    }
 
-	@Override
-	protected void onDraw(Canvas canvas) {
-		final int w = mWidth;
-		final int h = mHeight;
-		final int hCenter = h / 2;
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        mPaddingLeft = getPaddingLeft();
+        mPaddingRight = getPaddingRight();
+        mPaddingBottom = getPaddingBottom();
+        mPaddingTop = getPaddingTop();
+        mWidth = w - (mPaddingLeft) - mPaddingRight;
+        mHeight = h - (mPaddingTop) - mPaddingBottom;
 
-		final long timelineW = mEndTime - mStartTime;
-		mScaleX = w / (float) timelineW;
-		mMultX = (float) timelineW / w;
+        // the below values are based on what happens to look good.
+        mMajorTickSize = (int) (mHeight / 4.5);
+        mMinorTickSize = mHeight / 13;
 
-		canvas.save();
+        TICK_LABEL_SIZE_LARGE = mHeight / 6;
+        TICK_LABEL_SIZE_SMALL = mHeight / 50;
+    }
 
-		// offset so drawing starts with the padding
-		canvas.translate(mPaddingLeft, mPaddingTop);
+    Calendar mCalendar;
+    private float mTickLineSize;
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        final int w = mWidth;
+        final int h = mHeight;
+        final int hCenter = h / 2;
+
+        final long timelineW = mEndTime - mStartTime;
+        mScaleX = w / (float) timelineW;
+        mMultX = (float) timelineW / w;
+
+        canvas.save();
+
+        // offset so drawing starts with the padding
+        canvas.translate(mPaddingLeft, mPaddingTop);
 
         canvas.clipRect(0, 0, w, h);
 
-		// main axis
-		canvas.drawLine(0, hCenter, w, hCenter, PAINT_AXIS);
+        // main axis
+        canvas.drawLine(0, hCenter, w, hCenter, PAINT_AXIS);
 
-		// show the disabled region
-		if (mMinTime > mStartTime) {
-			canvas.drawRect(0, 0, (mMinTime - mStartTime) * mScaleX, h, PAINT_DISABLED);
-		}
+        // show the disabled region
+        if (mMinTime > mStartTime) {
+            canvas.drawRect(0, 0, (mMinTime - mStartTime) * mScaleX, h, PAINT_DISABLED);
+        }
 
-		final float maxTicks = w / 10.0f;
+        final float maxTicks = w / 10.0f;
 
         final float minTicks = w / 100000.0f;
 
         mDrawnTicks.clear();
 
-		for (final Interval interval : mIntervals) {
-			final long fullCount = timelineW / interval.getApproxPeriod();
+        for (final Interval interval : mIntervals) {
+            final long fullCount = timelineW / interval.getApproxPeriod();
 
-			if (fullCount < maxTicks && fullCount > minTicks) {
-				final float scale = 1 - ((fullCount - minTicks) / maxTicks);
+            if (fullCount < maxTicks && fullCount > minTicks) {
+                final float scale = 1 - ((fullCount - minTicks) / maxTicks);
                 // final float scaleLog = (float) (1 - Math.log(1 + (fullCount - 1) / maxTicks));
-				PAINT_TICK.setAlpha((int) (scale * 255));
-				if (scale > 0.8f) {
-					PAINT_TICK.setStrokeWidth((scale - 0.8f) * 6 + 1);
-				} else {
-					PAINT_TICK.setStrokeWidth(1);
-				}
-				final float tickSize = ((MAJOR_TICK_SIZE - MINOR_TICK_SIZE) * scale + MINOR_TICK_SIZE);
+                PAINT_TICK.setAlpha((int) (scale * 255));
+                if (scale > 0.8f) {
+                    PAINT_TICK.setStrokeWidth((scale - 0.8f) * mTickLineSize + 1);
+                } else {
+                    PAINT_TICK.setStrokeWidth(1);
+                }
+                final float tickSize = ((mMajorTickSize - mMinorTickSize) * scale + mMinorTickSize);
                 final float textSize = Math.round(((TICK_LABEL_SIZE_LARGE - TICK_LABEL_SIZE_SMALL)
                         * scale + TICK_LABEL_SIZE_SMALL));
                 PAINT_TICK_LABEL.setTextSize(textSize);
-				mCalendar.setTimeInMillis(mStartTime);
-				interval.startTicking(mCalendar);
-				int i = 0;
-				for (long xMarker = interval.getNextTick(); xMarker >= mStartTime
-						&& xMarker < mEndTime; xMarker = interval.getNextTick()) {
-					if (i > 1000) {
-						throw new RuntimeException("tried to draw too many ticks with interval "
-								+ interval);
-					}
-					i++;
+                mCalendar.setTimeInMillis(mStartTime);
+                interval.startTicking(mCalendar);
+                int i = 0;
+                for (long xMarker = interval.getNextTick(); xMarker >= mStartTime
+                        && xMarker < mEndTime; xMarker = interval.getNextTick()) {
+                    if (i > 1000) {
+                        throw new RuntimeException("tried to draw too many ticks with interval "
+                                + interval);
+                    }
+                    i++;
 
                     if (mDrawnTicks.contains(xMarker)) {
                         continue;
                     }
 
                     final float xPos = (xMarker - mStartTime) * mScaleX;
-                    canvas.drawLine(xPos, hCenter + tickSize, xPos, hCenter - tickSize,
-                            PAINT_TICK);
+                    canvas.drawLine(xPos, hCenter + tickSize, xPos, hCenter - tickSize, PAINT_TICK);
                     final CharSequence label = interval.getTickLabel(scale);
                     if (label != null) {
-                        canvas.drawText(label, 0, label.length(), xPos, hCenter - tickSize - 1,
-                                PAINT_TICK_LABEL);
+                        canvas.drawText(label, 0, label.length(), xPos, hCenter - tickSize
+                                - TICK_LABEL_SPACING * scale, PAINT_TICK_LABEL);
                     }
 
                     mDrawnTicks.add(xMarker);
-				}
-			}
-		}
+                }
+            }
+        }
 
-		// final Path path = new Path();
-		// XXX path.canvas.drawPath(path, PAINT_DISABLED);
+        // final Path path = new Path();
+        // XXX path.canvas.drawPath(path, PAINT_DISABLED);
 
-		canvas.restore();
+        canvas.restore();
 
-		mMarker.setBounds(mPaddingLeft, 0, w + mPaddingRight, h);
-		mMarker.draw(canvas);
-	}
+        mMarker.setBounds(mPaddingLeft, 0, w + mPaddingRight, h);
+        mMarker.draw(canvas);
+    }
 
-	private static interface Interval {
+    private static interface Interval {
         /**
          * In order to determine when to show a given interval, provide an approximate amount of
          * time that this interval represents. For example, for a minute interval, return the number
@@ -374,7 +392,7 @@ public class TimelineEntry extends View {
          *
          * @return approximation of the interval, in ms
          */
-		public long getApproxPeriod();
+        public long getApproxPeriod();
 
         /**
          * Initialize the interval with the given calendar. Further calls will be made to
@@ -382,14 +400,14 @@ public class TimelineEntry extends View {
          *
          * @param calendar
          */
-		public void startTicking(Calendar calendar);
+        public void startTicking(Calendar calendar);
 
         /**
          * Gets the next marker. {@link #startTicking(Calendar)} must be called first.
          *
          * @return the next interval time, in Unix epoch time
          */
-		public long getNextTick();
+        public long getNextTick();
 
         /**
          * Gets a label for the given tick.
@@ -400,19 +418,21 @@ public class TimelineEntry extends View {
          * @return the label of the same tick that was returned in {@link #getNextTick()}.
          */
         public CharSequence getTickLabel(float scale);
-	}
+    }
 
     private static class MinuteInterval implements Interval {
 
         private Calendar c;
         private final int mSubInterval;
+        private boolean mSkipZero = false;
 
         public MinuteInterval() {
             mSubInterval = 1;
         }
 
-        public MinuteInterval(int subInterval) {
+        public MinuteInterval(int subInterval, boolean skipZero) {
             mSubInterval = subInterval;
+            mSkipZero = skipZero;
         }
 
         public void startTicking(Calendar calendar) {
@@ -426,12 +446,18 @@ public class TimelineEntry extends View {
             final int min = c.get(Calendar.MINUTE);
             c.add(Calendar.MINUTE, mSubInterval - (min % mSubInterval));
 
+            if (mSkipZero && c.get(Calendar.MINUTE) == 0) {
+                return getNextTick();
+            }
             return c.getTimeInMillis();
         }
 
         @Override
         public CharSequence getTickLabel(float scale) {
-            return String.valueOf(c.get(Calendar.MINUTE));
+            final int min = c.get(Calendar.MINUTE);
+
+            return mSubInterval > 1 || (scale > FULL_LABELING_CUTOFF || min % 2 == 0) ? String
+                    .valueOf(min) : null;
         }
 
         @Override
@@ -440,480 +466,483 @@ public class TimelineEntry extends View {
         }
     }
 
-	private static class HourInterval implements Interval {
+    private static class HourInterval implements Interval {
 
-		private Calendar c;
+        private Calendar c;
 
-		public void startTicking(Calendar calendar) {
-			this.c = (Calendar) calendar.clone();
+        public void startTicking(Calendar calendar) {
+            this.c = (Calendar) calendar.clone();
 
-			c.clear(Calendar.MINUTE);
-			c.clear(Calendar.SECOND);
-			c.clear(Calendar.MILLISECOND);
-		}
+            c.clear(Calendar.MINUTE);
+            c.clear(Calendar.SECOND);
+            c.clear(Calendar.MILLISECOND);
+        }
 
-		public long getNextTick() {
-			c.add(Calendar.HOUR_OF_DAY, 1);
+        public long getNextTick() {
+            c.add(Calendar.HOUR_OF_DAY, 1);
 
-			return c.getTimeInMillis();
-		}
+            return c.getTimeInMillis();
+        }
 
         @Override
         public CharSequence getTickLabel(float scale) {
-            return String.valueOf(c.get(Calendar.HOUR_OF_DAY));
+            final int hour = c.get(Calendar.HOUR_OF_DAY);
+            return scale > FULL_LABELING_CUTOFF || hour % 2 == 0 ? String.valueOf(hour) : null;
         }
 
-		@Override
-		public long getApproxPeriod() {
-			return DateUtils.HOUR_IN_MILLIS;
-		}
-	}
+        @Override
+        public long getApproxPeriod() {
+            return DateUtils.HOUR_IN_MILLIS;
+        }
+    }
 
-	private static class DayInterval implements Interval {
+    private static class DayInterval implements Interval {
 
-		private Calendar c;
+        private Calendar c;
 
-		public void startTicking(Calendar calendar) {
-			this.c = (Calendar) calendar.clone();
+        public void startTicking(Calendar calendar) {
+            this.c = (Calendar) calendar.clone();
 
-			c.set(Calendar.HOUR_OF_DAY, 0);
-			c.set(Calendar.MINUTE, 0);
-			c.set(Calendar.SECOND, 0);
-			c.set(Calendar.MILLISECOND, 0);
-		}
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            c.set(Calendar.MILLISECOND, 0);
+        }
 
-		public long getNextTick() {
-			c.add(Calendar.DAY_OF_MONTH, 1);
+        public long getNextTick() {
+            c.add(Calendar.DAY_OF_MONTH, 1);
 
-			return c.getTimeInMillis();
-		}
+            return c.getTimeInMillis();
+        }
 
-		@Override
-		public long getApproxPeriod() {
-			return DateUtils.DAY_IN_MILLIS;
-		}
+        @Override
+        public long getApproxPeriod() {
+            return DateUtils.DAY_IN_MILLIS;
+        }
 
         @Override
         public CharSequence getTickLabel(float scale) {
             return String.valueOf(c.get(Calendar.DAY_OF_MONTH));
         }
-	}
+    }
 
-	private static class WeekInterval implements Interval {
+    private static class WeekInterval implements Interval {
 
-		private Calendar c;
+        private Calendar c;
 
-		public void startTicking(Calendar calendar) {
-			this.c = (Calendar) calendar.clone();
+        public void startTicking(Calendar calendar) {
+            this.c = (Calendar) calendar.clone();
 
-			c.set(Calendar.DAY_OF_WEEK, c.getFirstDayOfWeek());
-			c.set(Calendar.HOUR_OF_DAY, 0);
-			c.set(Calendar.MINUTE, 0);
-			c.set(Calendar.SECOND, 0);
-			c.set(Calendar.MILLISECOND, 0);
-		}
+            c.set(Calendar.DAY_OF_WEEK, c.getFirstDayOfWeek());
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            c.set(Calendar.MILLISECOND, 0);
+        }
 
-		public long getNextTick() {
-			c.add(Calendar.WEEK_OF_YEAR, 1);
+        public long getNextTick() {
+            c.add(Calendar.WEEK_OF_YEAR, 1);
 
-			return c.getTimeInMillis();
-		}
+            return c.getTimeInMillis();
+        }
 
-		@Override
-		public long getApproxPeriod() {
-			return DateUtils.WEEK_IN_MILLIS;
-		}
+        @Override
+        public long getApproxPeriod() {
+            return DateUtils.WEEK_IN_MILLIS;
+        }
 
         @Override
         public CharSequence getTickLabel(float scale) {
             return null;
         }
-	}
+    }
 
-	private static class MonthInterval implements Interval {
+    private static class MonthInterval implements Interval {
 
-		private Calendar c;
+        private Calendar c;
         private final Context mContext;
+
+        private static final float FULL_LABELING_CUTOFF_MONTH = Math.min(
+                FULL_LABELING_CUTOFF + 0.1f, 1f);
 
         public MonthInterval(Context context) {
             mContext = context;
         }
 
-		public void startTicking(Calendar calendar) {
-			this.c = (Calendar) calendar.clone();
+        public void startTicking(Calendar calendar) {
+            this.c = (Calendar) calendar.clone();
 
-			c.set(Calendar.DAY_OF_MONTH, c.getMinimum(Calendar.DAY_OF_MONTH));
-			c.set(Calendar.HOUR_OF_DAY, 0);
-			c.set(Calendar.MINUTE, 0);
-			c.set(Calendar.SECOND, 0);
-			c.set(Calendar.MILLISECOND, 0);
-		}
+            c.set(Calendar.DAY_OF_MONTH, c.getMinimum(Calendar.DAY_OF_MONTH));
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            c.set(Calendar.MILLISECOND, 0);
+        }
 
-		public long getNextTick() {
-			c.add(Calendar.MONTH, 1);
+        public long getNextTick() {
+            c.add(Calendar.MONTH, 1);
 
-			return c.getTimeInMillis();
-		}
+            return c.getTimeInMillis();
+        }
 
-		@Override
-		public long getApproxPeriod() {
-			return DateUtils.DAY_IN_MILLIS * 30;
-		}
+        @Override
+        public long getApproxPeriod() {
+            return DateUtils.DAY_IN_MILLIS * 30;
+        }
 
         @Override
         public CharSequence getTickLabel(float scale) {
 
-            if ((scale < 0.8 && c.get(Calendar.MONTH) % 2 == 0) || scale >= 0.5) {
+            if (scale > FULL_LABELING_CUTOFF_MONTH || c.get(Calendar.MONTH) % 2 == 0) {
                 return DateUtils.formatDateTime(mContext, c.getTimeInMillis(),
                         DateUtils.FORMAT_NO_YEAR | DateUtils.FORMAT_SHOW_DATE
                                 | DateUtils.FORMAT_NO_MONTH_DAY | DateUtils.FORMAT_NO_NOON_MIDNIGHT
-                                | (scale < 0.9 ? DateUtils.FORMAT_ABBREV_MONTH : 0));
+                                | (scale < 0.95 ? DateUtils.FORMAT_ABBREV_MONTH : 0));
             }
             return null;
         }
-	}
+    }
 
-	private static class YearInterval implements Interval {
+    private static class YearInterval implements Interval {
 
-		private Calendar c;
+        private Calendar c;
 
-		public void startTicking(Calendar calendar) {
-			this.c = (Calendar) calendar.clone();
+        public void startTicking(Calendar calendar) {
+            this.c = (Calendar) calendar.clone();
 
-			c.set(Calendar.MONTH, c.getMinimum(Calendar.MONTH));
-			c.set(Calendar.DAY_OF_MONTH, c.getMinimum(Calendar.DAY_OF_MONTH));
-			c.set(Calendar.HOUR_OF_DAY, 0);
-			c.set(Calendar.MINUTE, 0);
-			c.set(Calendar.SECOND, 0);
-			c.set(Calendar.MILLISECOND, 0);
-		}
+            c.set(Calendar.MONTH, c.getMinimum(Calendar.MONTH));
+            c.set(Calendar.DAY_OF_MONTH, c.getMinimum(Calendar.DAY_OF_MONTH));
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            c.set(Calendar.MILLISECOND, 0);
+        }
 
-		public long getNextTick() {
-			c.add(Calendar.YEAR, 1);
+        public long getNextTick() {
+            c.add(Calendar.YEAR, 1);
 
-			return c.getTimeInMillis();
-		}
+            return c.getTimeInMillis();
+        }
 
-		@Override
-		public long getApproxPeriod() {
-			return DateUtils.DAY_IN_MILLIS * 30 * 12;
-		}
+        @Override
+        public long getApproxPeriod() {
+            return DateUtils.DAY_IN_MILLIS * 30 * 12;
+        }
 
         @Override
         public CharSequence getTickLabel(float scale) {
             return String.valueOf(c.get(Calendar.YEAR));
         }
-	}
+    }
 
-	public long getTime() {
-		return (mEndTime - mStartTime) / 2 + mStartTime;
-	}
+    public long getTime() {
+        return (mEndTime - mStartTime) / 2 + mStartTime;
+    }
 
-	private void enforceLimits() {
-		final long curTime = getTime();
-		// ensure that the start time is never below the min time
-		if (curTime < mMinTime) {
-			final long minOffset = mMinTime - curTime;
-			mStartTime += minOffset;
-			mEndTime += minOffset;
-		}
+    private void enforceLimits() {
+        final long curTime = getTime();
+        // ensure that the start time is never below the min time
+        if (curTime < mMinTime) {
+            final long minOffset = mMinTime - curTime;
+            mStartTime += minOffset;
+            mEndTime += minOffset;
+        }
 
-		if (mEndTime - mStartTime < MIN_SCALE) {
-			final long minOffset = (MIN_SCALE - (mEndTime - mStartTime)) / 2;
-			mStartTime -= minOffset;
-			mEndTime += minOffset;
-		}
+        if (mEndTime - mStartTime < MIN_SCALE) {
+            final long minOffset = (MIN_SCALE - (mEndTime - mStartTime)) / 2;
+            mStartTime -= minOffset;
+            mEndTime += minOffset;
+        }
 
         if (mEndTime - mStartTime > MAX_SCALE) {
             final long minOffset = ((mEndTime - mStartTime) - MAX_SCALE) / 2;
             mStartTime += minOffset;
             mEndTime -= minOffset;
         }
-	}
+    }
 
-	/**
-	 * Sets the current time.
-	 *
-	 * @param time
-	 *            the time in milliseconds
-	 */
-	public void setTime(long time) {
-		final long curtime = getTime();
-		final long offset = time - curtime;
-		mEndTime += offset;
-		mStartTime += offset;
+    /**
+     * Sets the current time.
+     *
+     * @param time
+     *            the time in milliseconds
+     */
+    public void setTime(long time) {
+        final long curtime = getTime();
+        final long offset = time - curtime;
+        mEndTime += offset;
+        mStartTime += offset;
 
-		// enforceMinimum();
+        // enforceMinimum();
 
-		invalidate();
-		notifyListener();
-	}
+        invalidate();
+        notifyListener();
+    }
 
-	public void setMinimumTime(long minTime) {
-		mMinTime = minTime;
-		invalidate();
-	}
+    public void setMinimumTime(long minTime) {
+        mMinTime = minTime;
+        invalidate();
+    }
 
-	/**
-	 * Sets the range. This is essentially the zoom scale.
-	 *
-	 * @param range
-	 *            the size of the range entry, in milliseconds
-	 */
-	public void setRange(long range) {
-		final long offset = range - (mEndTime - mStartTime) / 2;
-		mEndTime += offset;
-		mStartTime -= offset;
+    /**
+     * Sets the range. This is essentially the zoom scale.
+     *
+     * @param range
+     *            the size of the range entry, in milliseconds
+     */
+    public void setRange(long range) {
+        final long offset = range - (mEndTime - mStartTime) / 2;
+        mEndTime += offset;
+        mStartTime -= offset;
 
-		// enforceMinimum();
+        // enforceMinimum();
 
-		invalidate();
-		notifyListener();
-	}
+        invalidate();
+        notifyListener();
+    }
 
-	/**
-	 * Translates the timeline by a certain number of pixels.
-	 *
-	 * @param pixels
-	 *            the number of pixels to offset by
-	 */
-	public void translateTimeline(float pixels) {
-		final long offset = (long) (mMultX * pixels);
+    /**
+     * Translates the timeline by a certain number of pixels.
+     *
+     * @param pixels
+     *            the number of pixels to offset by
+     */
+    public void translateTimeline(float pixels) {
+        final long offset = (long) (mMultX * pixels);
 
-		mStartTime += offset;
-		mEndTime += offset;
+        mStartTime += offset;
+        mEndTime += offset;
 
-		enforceLimits();
+        enforceLimits();
 
-		invalidate();
-		notifyListener();
-	}
+        invalidate();
+        notifyListener();
+    }
 
-	/**
-	 * Scales the timeline by a certain number of pixels, centered at the given center.
-	 *
-	 * @param center
-	 *            not currently used
-	 * @param pixels
-	 *            the number of pixels to scale it by
-	 */
-	public void scaleTimeline(float center, float pixels) {
-		final long offset = (long) (mMultX * pixels) / 2;
-		mEndTime += offset;
-		mStartTime -= offset;
+    /**
+     * Scales the timeline by a certain number of pixels, centered at the given center.
+     *
+     * @param center
+     *            not currently used
+     * @param pixels
+     *            the number of pixels to scale it by
+     */
+    public void scaleTimeline(float center, float pixels) {
+        final long offset = (long) (mMultX * pixels) / 2;
+        mEndTime += offset;
+        mStartTime -= offset;
 
-		enforceLimits();
+        enforceLimits();
 
-		invalidate();
-		notifyListener();
-	}
+        invalidate();
+        notifyListener();
+    }
 
-	private void notifyListener() {
-		if (mOnChangeListener != null) {
-            mOnChangeListener.onChange(getTime(), mStartTime,
-					mEndTime);
-		}
-	}
+    private void notifyListener() {
+        if (mOnChangeListener != null) {
+            mOnChangeListener.onChange(getTime(), mStartTime, mEndTime);
+        }
+    }
 
-	/**
-	 * Tries to claim the user's drag motion, and requests disallowing any ancestors from stealing
-	 * events in the drag.
-	 */
-	private void attemptClaimDrag() {
-		final ViewParent parent = getParent();
-		if (parent != null) {
-			parent.requestDisallowInterceptTouchEvent(true);
-		}
-	}
+    /**
+     * Tries to claim the user's drag motion, and requests disallowing any ancestors from stealing
+     * events in the drag.
+     */
+    private void attemptClaimDrag() {
+        final ViewParent parent = getParent();
+        if (parent != null) {
+            parent.requestDisallowInterceptTouchEvent(true);
+        }
+    }
 
-	/*
-	 * Copyright (C) 2009 The Android Open Source Project
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-	 * except in compliance with the License. You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software distributed under the
-	 * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-	 * either express or implied. See the License for the specific language governing permissions
-	 * and limitations under the License.
-	 */
+    /*
+     * Copyright (C) 2009 The Android Open Source Project
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+     * except in compliance with the License. You may obtain a copy of the License at
+     *
+     * http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software distributed under the
+     * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+     * either express or implied. See the License for the specific language governing permissions
+     * and limitations under the License.
+     */
 
-	private void initOrResetVelocityTracker() {
-		if (mVelocityTracker == null) {
-			mVelocityTracker = VelocityTracker.obtain();
-		} else {
-			mVelocityTracker.clear();
-		}
-	}
+    private void initOrResetVelocityTracker() {
+        if (mVelocityTracker == null) {
+            mVelocityTracker = VelocityTracker.obtain();
+        } else {
+            mVelocityTracker.clear();
+        }
+    }
 
-	private void initVelocityTrackerIfNotExists() {
-		if (mVelocityTracker == null) {
-			mVelocityTracker = VelocityTracker.obtain();
-		}
-	}
+    private void initVelocityTrackerIfNotExists() {
+        if (mVelocityTracker == null) {
+            mVelocityTracker = VelocityTracker.obtain();
+        }
+    }
 
-	private void recycleVelocityTracker() {
-		if (mVelocityTracker != null) {
-			mVelocityTracker.recycle();
-			mVelocityTracker = null;
-		}
-	}
+    private void recycleVelocityTracker() {
+        if (mVelocityTracker != null) {
+            mVelocityTracker.recycle();
+            mVelocityTracker = null;
+        }
+    }
 
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		final int action = event.getAction();
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        final int action = event.getAction();
 
-		initVelocityTrackerIfNotExists();
+        initVelocityTrackerIfNotExists();
 
-		final int idx = event.getActionIndex();
+        final int idx = event.getActionIndex();
 
-		final boolean twoFingers = event.getPointerCount() == 2;
+        final boolean twoFingers = event.getPointerCount() == 2;
 
-		switch (action & MotionEvent.ACTION_MASK) {
-		// first finger
-			case MotionEvent.ACTION_DOWN: {
-				attemptClaimDrag();
-				initOrResetVelocityTracker();
-				mVelocityTracker.addMovement(event);
-				mState = STATE_TRANSLATING;
-				mPrevX = event.getX(idx);
-				mPrevY = event.getY(idx);
+        switch (action & MotionEvent.ACTION_MASK) {
+        // first finger
+            case MotionEvent.ACTION_DOWN: {
+                attemptClaimDrag();
+                initOrResetVelocityTracker();
+                mVelocityTracker.addMovement(event);
+                mState = STATE_TRANSLATING;
+                mPrevX = event.getX(idx);
+                mPrevY = event.getY(idx);
 
-				mHandler.sendEmptyMessageDelayed(MSG_STOP_SCROLLING, STOP_SCROLLING_DELAY);
+                mHandler.sendEmptyMessageDelayed(MSG_STOP_SCROLLING, STOP_SCROLLING_DELAY);
 
-				mActivePointerId = event.getPointerId(0);
+                mActivePointerId = event.getPointerId(0);
 
-				return true;
-			}
+                return true;
+            }
 
-			// second+ fingers
-			case MotionEvent.ACTION_POINTER_DOWN: {
-				attemptClaimDrag();
+            // second+ fingers
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                attemptClaimDrag();
 
-				if (twoFingers) {
-					mPrevX1 = event.getX(idx);
-					mState = STATE_SCALING;
-					mScroller.abortAnimation();
-				}
-				return true;
-			}
+                if (twoFingers) {
+                    mPrevX1 = event.getX(idx);
+                    mState = STATE_SCALING;
+                    mScroller.abortAnimation();
+                }
+                return true;
+            }
 
-			case MotionEvent.ACTION_MOVE: {
-				final float x = event.getX(idx);
-				final float y = event.getY(idx);
+            case MotionEvent.ACTION_MOVE: {
+                final float x = event.getX(idx);
+                final float y = event.getY(idx);
 
-				switch (mState) {
-					case STATE_TRANSLATING:
-						mVelocityTracker.addMovement(event);
+                switch (mState) {
+                    case STATE_TRANSLATING:
+                        mVelocityTracker.addMovement(event);
 
-						if (mScroller.isFinished()) {
-							onScrollChanged((int) mPrevX, (int) mPrevY, (int) x, (int) y);
-						}
-						break;
+                        if (mScroller.isFinished()) {
+                            onScrollChanged((int) mPrevX, (int) mPrevY, (int) x, (int) y);
+                        }
+                        break;
 
-					case STATE_SCALING:
-						final float x1 = event.getX(1),
-						x0 = event.getX(0);
-						if (x1 > x0) {
-							scaleTimeline(0, (mPrevX1 - x1) - (mPrevX - x0));
-						} else {
-							scaleTimeline(0, (mPrevX - x0) - (mPrevX1 - x1));
-						}
-						mPrevX1 = event.getX(1);
-						break;
-				}
-				mPrevX = x;
-				mPrevY = y;
-				return true;
-			}
-			case MotionEvent.ACTION_CANCEL:
-			case MotionEvent.ACTION_POINTER_UP:
-			case MotionEvent.ACTION_UP: {
+                    case STATE_SCALING:
+                        final float x1 = event.getX(1),
+                        x0 = event.getX(0);
+                        if (x1 > x0) {
+                            scaleTimeline(0, (mPrevX1 - x1) - (mPrevX - x0));
+                        } else {
+                            scaleTimeline(0, (mPrevX - x0) - (mPrevX1 - x1));
+                        }
+                        mPrevX1 = event.getX(1);
+                        break;
+                }
+                mPrevX = x;
+                mPrevY = y;
+                return true;
+            }
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_POINTER_UP:
+            case MotionEvent.ACTION_UP: {
 
-				switch (mState) {
-					case STATE_SCALING:
-						mState = STATE_TRANSLATING;
-						break;
+                switch (mState) {
+                    case STATE_SCALING:
+                        mState = STATE_TRANSLATING;
+                        break;
 
-					case STATE_TRANSLATING:
-						mHandler.removeMessages(MSG_STOP_SCROLLING);
+                    case STATE_TRANSLATING:
+                        mHandler.removeMessages(MSG_STOP_SCROLLING);
 
-						mVelocityTracker.addMovement(event);
-						mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+                        mVelocityTracker.addMovement(event);
+                        mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
 
-						final int initialXVelocity = (int) mVelocityTracker
-								.getXVelocity(mActivePointerId);
+                        final int initialXVelocity = (int) mVelocityTracker
+                                .getXVelocity(mActivePointerId);
 
-						final int initialYVelocity = (int) mVelocityTracker
-								.getYVelocity(mActivePointerId);
+                        final int initialYVelocity = (int) mVelocityTracker
+                                .getYVelocity(mActivePointerId);
 
-						final int absX = Math.abs(initialXVelocity);
-						final int absY = Math.abs(initialYVelocity);
-						if ((absX > mMinimumVelocity) || (absY > mMinimumVelocity)) {
-							if (absX > absY) {
-								fling(-initialXVelocity, 0);
-							} else {
-								fling(0, -initialYVelocity);
-							}
-						}
+                        final int absX = Math.abs(initialXVelocity);
+                        final int absY = Math.abs(initialYVelocity);
+                        if ((absX > mMinimumVelocity) || (absY > mMinimumVelocity)) {
+                            if (absX > absY) {
+                                fling(-initialXVelocity, 0);
+                            } else {
+                                fling(0, -initialYVelocity);
+                            }
+                        }
 
-						mState = STATE_STILL;
-				}
-				recycleVelocityTracker();
-			}
+                        mState = STATE_STILL;
+                }
+                recycleVelocityTracker();
+            }
 
-				return true;
+                return true;
 
-			default:
-				return super.onTouchEvent(event);
-		}
+            default:
+                return super.onTouchEvent(event);
+        }
 
-	}
+    }
 
-	private void fling(int velocityX, int velocityY) {
-		// this compensates for the way that the scroller behaves when it's close to the edge.
-		// Normally, the behavior is very unusual and causes the scroller to suddenly decrease in
-		// velocity. This makes it more gradual, such that the scroller hits the edge when very
-		// close. Larger flings cause the scroller to decelerate until it reaches the edge, which is
-		// functionally useful for a time slider, even if physics-wise it's a little funky.
-		int minX = (int) ((mMinTime - getTime()) * mScaleX) + mScrollX;
-		if (mScrollX - minX < mWidth) {
-			minX -= mWidth / 2;
-		}
-		mScroller.fling(mScrollX, mScrollY, velocityX, velocityY,
-				Math.max(minX, Integer.MIN_VALUE), Integer.MAX_VALUE /* maxX */,
-				Integer.MIN_VALUE /* minY */, Integer.MAX_VALUE /* maxY */);
+    private void fling(int velocityX, int velocityY) {
+        // this compensates for the way that the scroller behaves when it's close to the edge.
+        // Normally, the behavior is very unusual and causes the scroller to suddenly decrease in
+        // velocity. This makes it more gradual, such that the scroller hits the edge when very
+        // close. Larger flings cause the scroller to decelerate until it reaches the edge, which is
+        // functionally useful for a time slider, even if physics-wise it's a little funky.
+        int minX = (int) ((mMinTime - getTime()) * mScaleX) + mScrollX;
+        if (mScrollX - minX < mWidth) {
+            minX -= mWidth / 2;
+        }
+        mScroller.fling(mScrollX, mScrollY, velocityX, velocityY,
+                Math.max(minX, Integer.MIN_VALUE), Integer.MAX_VALUE /* maxX */,
+                Integer.MIN_VALUE /* minY */, Integer.MAX_VALUE /* maxY */);
 
-		postInvalidate();
-	}
+        postInvalidate();
+    }
 
-	@Override
-	public void computeScroll() {
+    @Override
+    public void computeScroll() {
 
-		if (mScroller.computeScrollOffset()) {
-			final int oldX = mScrollX;
-			final int oldY = mScrollY;
-			final int x = mScroller.getCurrX();
-			final int y = mScroller.getCurrY();
+        if (mScroller.computeScrollOffset()) {
+            final int oldX = mScrollX;
+            final int oldY = mScrollY;
+            final int x = mScroller.getCurrX();
+            final int y = mScroller.getCurrY();
 
-			if (oldX != x || oldY != y) {
-				onScrollChanged(x, y, oldX, oldY);
-			}
-		}
-	}
+            if (oldX != x || oldY != y) {
+                onScrollChanged(x, y, oldX, oldY);
+            }
+        }
+    }
 
-	@Override
-	protected void onScrollChanged(int x, int y, int oldl, int oldt) {
-		mScrollX = x;
-		mScrollY = y;
+    @Override
+    protected void onScrollChanged(int x, int y, int oldl, int oldt) {
+        mScrollX = x;
+        mScrollY = y;
 
-		translateTimeline(x - oldl);
-		scaleTimeline(mPrevX, y - oldt);
-	}
+        translateTimeline(x - oldl);
+        scaleTimeline(mPrevX, y - oldt);
+    }
 
-	public interface OnChangeListener {
-		public void onChange(long newValue, long min, long max);
-	}
+    public interface OnChangeListener {
+        public void onChange(long newValue, long min, long max);
+    }
 }
