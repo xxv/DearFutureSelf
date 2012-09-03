@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal" />
 
-        <info.staticfree.android.dearfutureself.TimelineEntry
+        <info.staticfree.android.widget.TimelineEntry
             android:id="@+id/timeline"
             android:layout_width="fill_parent"
             android:layout_height="100dip"
