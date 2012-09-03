@@ -27,6 +27,8 @@
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
         android:layout_marginLeft="6dip"
+        android:maxLines="2"
+        android:ellipsize="middle"
         android:layout_marginTop="6dip"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 	/>
@@ -47,6 +49,8 @@
 		android:layout_height="wrap_content"
 		android:layout_below="@android:id/text1"
         android:layout_alignLeft="@android:id/text1"
+        android:maxLines="2"
+        android:ellipsize="end"
         android:layout_toLeftOf="@+id/date"
 		android:textAppearance="?android:attr/textAppearanceSmall"
 	/>
