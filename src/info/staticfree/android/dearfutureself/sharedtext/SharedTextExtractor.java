@@ -11,10 +11,10 @@ public class SharedTextExtractor implements SharedTextParser {
 
     private SharedTextParser mSuccessfulParser;
 
-    public boolean parse(String sharedText){
+    public boolean parse(String subject, String sharedText) {
         boolean success = false;
         for (final SharedTextParser parser: mParsers){
-            success = parser.parse(sharedText);
+            success = parser.parse(subject, sharedText);
             if (success){
                 mSuccessfulParser = parser;
                 break;

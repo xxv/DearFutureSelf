@@ -8,7 +8,7 @@ public interface SharedTextParser {
      * @param text the shared text to parse
      * @return true if the given text is from the specified source.
      */
-    public boolean parse(String text);
+    public boolean parse(String subject, String text);
     /**
      * @return the extracted body. Must call {@link #parse(String)} first.
      */

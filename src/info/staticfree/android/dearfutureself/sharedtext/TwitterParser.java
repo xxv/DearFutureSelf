@@ -7,21 +7,21 @@ import android.net.Uri;
 
 public class TwitterParser implements SharedTextParser {
 
-    private static final Pattern PARSE_RE = Pattern.compile("(.* has shared a Tweet with you):\\s*\"(.*)\"\\s*--(.+)");
+    private static final Pattern MATCH_IS_TWITTER = Pattern
+            .compile("(.* has shared a tweet with you)");
 
     private String mSubject, mBody;
     private Uri mUri;
 
     @Override
-    public boolean parse(String text) {
-        final Matcher m = PARSE_RE.matcher(text);
-        if (! m.matches()){
+    public boolean parse(String subject, String text) {
+        final Matcher m = MATCH_IS_TWITTER.matcher(subject);
+        if (!m.matches()) {
             return false;
         }
 
-        mSubject = m.group(1);
-        mBody = m.group(2);
-        mUri = Uri.parse(m.group(3));
+        mSubject = subject;
+        mBody = text;
 
         return true;
     }
@@ -35,7 +35,7 @@ public class TwitterParser implements SharedTextParser {
     @Override
     public String getSubject() {
 
-        return mSubject;
+        return "Shared from Twitter";
     }
 
     @Override

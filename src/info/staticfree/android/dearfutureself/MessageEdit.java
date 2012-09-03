@@ -68,8 +68,9 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
             getSupportLoaderManager().initLoader(0, null, this);
 
         } else if (Intent.ACTION_SEND.equals(mAction)) {
+            final String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
             final String body = intent.getStringExtra(Intent.EXTRA_TEXT);
-            if (mSharedTextExtractor.parse(body)) {
+            if (mSharedTextExtractor.parse(subject, body)) {
                 mSubjectView.setText(mSharedTextExtractor.getSubject());
                 mBodyView.setText(mSharedTextExtractor.getBody());
             } else {
