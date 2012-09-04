@@ -4,6 +4,7 @@ import info.staticfree.android.dearfutureself.content.Message;
 import info.staticfree.android.dearfutureself.sharedtext.SharedTextExtractor;
 import info.staticfree.android.widget.TimelineEntry;
 import info.staticfree.android.widget.TimelineEntry.OnChangeListener;
+import info.staticfree.android.widget.text.format.DateUtils;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -14,7 +15,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.text.format.DateUtils;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -223,7 +223,6 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
                 return false;
         }
     }
-
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
