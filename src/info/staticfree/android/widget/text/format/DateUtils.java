@@ -16,10 +16,12 @@
 
 package info.staticfree.android.widget.text.format;
 
+import java.util.Date;
 import java.util.Formatter;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.text.format.DateFormat;
 import android.text.format.Time;
 
 //@formatter:off
@@ -178,8 +180,14 @@ public class DateUtils
                 prepositionId = sRes_preposition_for_time;
             } else if (sNowTime.year != sThenTime.year) {
                 // Different years
-                final int flags = FORMAT_SHOW_DATE | FORMAT_SHOW_YEAR | FORMAT_NUMERIC_DATE;
-                result = android.text.format.DateUtils.formatDateRange(c, millis, millis, flags);
+
+                if (mTime == null){
+                    mTime = new Date();
+                }
+                mTime.setTime(millis);
+
+                // this format method properly handles > 2038 as well as respects the locale's ordering
+                result = sDateFormat.format(mTime);
 
                 // This is a date (like "10/31/2008" so use the date preposition)
                 prepositionId = sRes_preposition_for_date;
@@ -197,6 +205,17 @@ public class DateUtils
         return result;
     }
 
+    private static Date mTime;
+    private static java.text.DateFormat sDateFormat;
+
+    /**
+     * Initializes static resources that are based on the given context. If the context
+     * changes from when it was first initialized, this will update all the static resources.
+     *
+     * Only a hash of the context is preserved, so the Context shouldn't be leaked.
+     *
+     * @param c
+     */
     private static void initResources(Context c) {
         final int thisContextHash = c.hashCode();
         if (sContextHash == 0 || thisContextHash != sContextHash){
@@ -206,6 +225,8 @@ public class DateUtils
             sRes_preposition_for_time = r.getIdentifier("preposition_for_time", "string", "android");
             sRes_relative_time = r.getIdentifier("relative_time", "string", "android");
             sRes_date_time = r.getIdentifier("date_time", "string", "android");
+
+            sDateFormat = DateFormat.getDateFormat(c);
 
             sContextHash = thisContextHash;
         }
