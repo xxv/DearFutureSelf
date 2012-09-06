@@ -38,9 +38,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.actionbarsherlock.ActionBarSherlock;
+
 public class ImportExport extends Activity implements OnClickListener, OnItemClickListener {
 
     public static final String TAG = ImportExport.class.getSimpleName();
+
+    private final ActionBarSherlock mSherlock = ActionBarSherlock.wrap(this);
 
     public static final String EXPORT_PREFIX = "dearfutureself-",
         EXPORT_SUFFIX = ".json";
@@ -53,7 +57,7 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.import_export);
+        mSherlock.setContentView(R.layout.import_export);
 
         findViewById(R.id.export_msgs).setOnClickListener(this);
         mBackupList = (ListView) findViewById(R.id.backups);
