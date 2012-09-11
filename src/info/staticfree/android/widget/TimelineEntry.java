@@ -20,10 +20,10 @@ import android.os.Parcelable;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewParent;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
@@ -76,26 +76,9 @@ public class TimelineEntry extends View {
     private float mScaleX;
     private float mMultX;
 
-    private float mPrevX;
-    private float mPrevX1;
-
-    private float mPrevY;
-
+    private GestureDetector mGestureDetector;
     private Scroller mScroller;
-    private VelocityTracker mVelocityTracker;
 
-    //@formatter:off
-    private static final int
-        STATE_STILL = 0,
-        STATE_TRANSLATING = 1,
-        STATE_SCALING = 2;
-    //@formatter:on
-
-    private int mState = STATE_STILL;
-    private float mMaximumVelocity;
-    private int mTouchSlop; // TODO use this
-    private int mMinimumVelocity;
-    private int mActivePointerId;
     private int mScrollX;
     private int mScrollY;
 
@@ -184,11 +167,6 @@ public class TimelineEntry extends View {
         mScroller = new Scroller(context, new DecelerateInterpolator(), true);
         mHandler = new ScrollHandler(mScroller);
 
-        final ViewConfiguration configuration = ViewConfiguration.get(context);
-        mTouchSlop = configuration.getScaledTouchSlop();
-        mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
-        mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
-
         if (mStartTime == 0) {
             mEndTime = System.currentTimeMillis();
 
@@ -196,6 +174,8 @@ public class TimelineEntry extends View {
         }
 
         mCalendar = Calendar.getInstance();
+
+        mGestureDetector = new GestureDetector(mContext, mGestureListener);
 
         final WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         wm.getDefaultDisplay().getMetrics(mDisplayMetrics);
@@ -824,151 +804,62 @@ public class TimelineEntry extends View {
         }
     }
 
-    /*
-     * Copyright (C) 2009 The Android Open Source Project
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-     * except in compliance with the License. You may obtain a copy of the License at
-     *
-     * http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software distributed under the
-     * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-     * either express or implied. See the License for the specific language governing permissions
-     * and limitations under the License.
-     */
-
-    private void initOrResetVelocityTracker() {
-        if (mVelocityTracker == null) {
-            mVelocityTracker = VelocityTracker.obtain();
-        } else {
-            mVelocityTracker.clear();
-        }
-    }
-
-    private void initVelocityTrackerIfNotExists() {
-        if (mVelocityTracker == null) {
-            mVelocityTracker = VelocityTracker.obtain();
-        }
-    }
-
-    private void recycleVelocityTracker() {
-        if (mVelocityTracker != null) {
-            mVelocityTracker.recycle();
-            mVelocityTracker = null;
-        }
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         final int action = event.getAction();
 
-        initVelocityTrackerIfNotExists();
-
-        final int idx = event.getActionIndex();
-
-        final boolean twoFingers = event.getPointerCount() == 2;
-
-        switch (action & MotionEvent.ACTION_MASK) {
-        // first finger
-            case MotionEvent.ACTION_DOWN: {
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
                 attemptClaimDrag();
-                initOrResetVelocityTracker();
-                mVelocityTracker.addMovement(event);
-                mState = STATE_TRANSLATING;
-                mPrevX = event.getX(idx);
-                mPrevY = event.getY(idx);
-
-                mHandler.sendEmptyMessageDelayed(MSG_STOP_SCROLLING, STOP_SCROLLING_DELAY);
-
-                mActivePointerId = event.getPointerId(0);
-
-                return true;
-            }
-
-            // second+ fingers
-            case MotionEvent.ACTION_POINTER_DOWN: {
-                attemptClaimDrag();
-
-                if (twoFingers) {
-                    mPrevX1 = event.getX(idx);
-                    mState = STATE_SCALING;
-                    mScroller.abortAnimation();
-                }
-                return true;
-            }
-
-            case MotionEvent.ACTION_MOVE: {
-                final float x = event.getX(idx);
-                final float y = event.getY(idx);
-
-                switch (mState) {
-                    case STATE_TRANSLATING:
-                        mVelocityTracker.addMovement(event);
-
-                        if (mScroller.isFinished()) {
-                            onScrollChanged((int) mPrevX, (int) mPrevY, (int) x, (int) y);
-                        }
-                        break;
-
-                    case STATE_SCALING:
-                        final float x1 = event.getX(1),
-                        x0 = event.getX(0);
-                        if (x1 > x0) {
-                            scaleTimeline(0, (mPrevX1 - x1) - (mPrevX - x0));
-                        } else {
-                            scaleTimeline(0, (mPrevX - x0) - (mPrevX1 - x1));
-                        }
-                        mPrevX1 = event.getX(1);
-                        break;
-                }
-                mPrevX = x;
-                mPrevY = y;
-                return true;
-            }
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_POINTER_UP:
-            case MotionEvent.ACTION_UP: {
-
-                switch (mState) {
-                    case STATE_SCALING:
-                        mState = STATE_TRANSLATING;
-                        break;
-
-                    case STATE_TRANSLATING:
-                        mHandler.removeMessages(MSG_STOP_SCROLLING);
-
-                        mVelocityTracker.addMovement(event);
-                        mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-
-                        final int initialXVelocity = (int) mVelocityTracker
-                                .getXVelocity(mActivePointerId);
-
-                        final int initialYVelocity = (int) mVelocityTracker
-                                .getYVelocity(mActivePointerId);
-
-                        final int absX = Math.abs(initialXVelocity);
-                        final int absY = Math.abs(initialYVelocity);
-                        if ((absX > mMinimumVelocity) || (absY > mMinimumVelocity)) {
-                            if (absX > absY) {
-                                fling(-initialXVelocity, 0);
-                            } else {
-                                fling(0, -initialYVelocity);
-                            }
-                        }
-
-                        mState = STATE_STILL;
-                }
-                recycleVelocityTracker();
-            }
-
-                return true;
-
-            default:
-                return super.onTouchEvent(event);
         }
 
+        return mGestureDetector.onTouchEvent(event);
     }
+
+    private final OnGestureListener mGestureListener = new OnGestureListener() {
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            mHandler.sendEmptyMessage(MSG_STOP_SCROLLING);
+            return true;
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e) {
+
+
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+
+            scroll((int) e2.getX(), (int) e2.getY(), distanceX, distanceY);
+
+            return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            if (Math.abs(velocityX) > Math.abs(velocityY)) {
+                fling((int) -velocityX, 0);
+            } else {
+                fling(0, (int) -(velocityY / mDisplayMetrics.density));
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+    };
+
 
     private void fling(int velocityX, int velocityY) {
         // this compensates for the way that the scroller behaves when it's close to the edge.
@@ -997,18 +888,18 @@ public class TimelineEntry extends View {
             final int y = mScroller.getCurrY();
 
             if (oldX != x || oldY != y) {
-                onScrollChanged(x, y, oldX, oldY);
+                // TODO if the center scaling is ever used, this should be updated.
+                scroll(0, 0, x - oldX, y - oldY);
+                mScrollX = x;
+                mScrollY = y;
             }
         }
     }
 
-    @Override
-    protected void onScrollChanged(int x, int y, int oldl, int oldt) {
-        mScrollX = x;
-        mScrollY = y;
+    protected void scroll(int x, int y, float deltaX, float deltaY) {
 
-        translateTimeline(x - oldl);
-        scaleTimeline(mPrevX, y - oldt);
+        translateTimeline(deltaX);
+        scaleTimeline(x, deltaY);
     }
 
     public interface OnChangeListener {
