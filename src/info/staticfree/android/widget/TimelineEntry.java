@@ -729,8 +729,9 @@ public class TimelineEntry extends View {
     }
 
     public static CharSequence getFormattedDateTime(Context context, long time) {
-        return DateUtils.getRelativeDateTimeString(context, time, DateUtils.MINUTE_IN_MILLIS,
-                DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_DATE
+        return info.staticfree.android.widget.text.format.DateUtils.getRelativeDateTimeString(
+                context, time, DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS,
+                DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_DATE
                         | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_WEEKDAY);
     }
 
@@ -816,7 +817,6 @@ public class TimelineEntry extends View {
         }
     }
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         final int action = event.getAction();
@@ -840,7 +840,6 @@ public class TimelineEntry extends View {
 
         @Override
         public void onShowPress(MotionEvent e) {
-
 
         }
 
@@ -871,7 +870,6 @@ public class TimelineEntry extends View {
             return true;
         }
     };
-
 
     private void fling(int velocityX, int velocityY) {
         // this compensates for the way that the scroller behaves when it's close to the edge.
