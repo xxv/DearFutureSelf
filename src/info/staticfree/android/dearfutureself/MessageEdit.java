@@ -4,7 +4,6 @@ import info.staticfree.android.dearfutureself.content.Message;
 import info.staticfree.android.dearfutureself.sharedtext.SharedTextExtractor;
 import info.staticfree.android.widget.TimelineEntry;
 import info.staticfree.android.widget.TimelineEntry.OnChangeListener;
-import info.staticfree.android.widget.text.format.DateUtils;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -241,12 +240,7 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
             setSendIndicator(false);
         }
 
-        final CharSequence time = DateUtils.getRelativeDateTimeString(this, newValue,
-                DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME
-                        | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR
-                        | DateUtils.FORMAT_SHOW_WEEKDAY);
-
-        mTimelineValueView.setText(time);
+        mTimelineValueView.setText(TimelineEntry.getFormattedDateTime(this, newValue));
 
     }
 }

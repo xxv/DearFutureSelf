@@ -728,6 +728,18 @@ public class TimelineEntry extends View {
         notifyListener();
     }
 
+    public static CharSequence getFormattedDateTime(Context context, long time) {
+        return DateUtils.getRelativeDateTimeString(context, time, DateUtils.MINUTE_IN_MILLIS,
+                DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_DATE
+                        | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_WEEKDAY);
+    }
+
+    @Override
+    public CharSequence getContentDescription() {
+
+        return getFormattedDateTime(mContext, getTime());
+    }
+
     public void setMinimumTime(long minTime) {
         mMinTime = minTime;
         invalidate();
