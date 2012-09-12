@@ -62,6 +62,9 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         mList.setEmptyView(findViewById(android.R.id.empty));
 
         onNewIntent(getIntent());
+
+        startService(MessageService.getScheduleIntent());
+
     }
 
     @Override
