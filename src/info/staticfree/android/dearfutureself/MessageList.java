@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -43,6 +44,32 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
             Message.STATE_READ);
 
     private static final String TAG = MessageList.class.getSimpleName();
+
+    private static final int MSG_SHOW_INDETERMINATE = 100;
+    private static final int SHOW_INDETERMINATE_DELAY = 200; // ms
+
+    // loader arguments
+    private static final String ARG_SORT_ORDER = "SORT_ORDER";
+    private static final String ARG_URI = "URI";
+
+    private static class MessageListHandler extends Handler {
+        private final ActionBarSherlock mSherlock;
+
+        public MessageListHandler(ActionBarSherlock sherlock) {
+            mSherlock = sherlock;
+        }
+
+        @Override
+        public void handleMessage(android.os.Message msg) {
+            switch (msg.what) {
+                case MSG_SHOW_INDETERMINATE:
+                    mSherlock.setProgressBarIndeterminateVisibility(true);
+                    break;
+            }
+        };
+    }
+
+    private final Handler mHandler = new MessageListHandler(mSherlock);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -88,18 +115,43 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
         setIntent(intent);
 
-        getSupportLoaderManager().restartLoader(0, null, this);
+        Bundle args = intent.getExtras();
+        if (args == null) {
+            args = new Bundle();
+        }
+        args.putParcelable(ARG_URI, intent.getData());
+        getSupportLoaderManager().restartLoader(0, args, this);
+    }
+
+    void setData(Uri data) {
+        setData(data, null);
+    }
+
+    void setData(Uri data, String sortOrder) {
+        final Intent i = getIntent();
+        i.setData(data);
+        i.putExtra(ARG_SORT_ORDER, sortOrder);
+
+        onNewIntent(i);
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.d(TAG, "onCreateLoader");
-        mSherlock.setProgressBarIndeterminateVisibility(true);
+        mHandler.sendEmptyMessageDelayed(MSG_SHOW_INDETERMINATE, SHOW_INDETERMINATE_DELAY);
 
         findViewById(android.R.id.empty).setVisibility(View.INVISIBLE);
 
-        return new CursorLoader(this, getIntent().getData(), MessageListAdapter.PROJECTION, null,
-                null, Message.SORT_DEFAULT);
+        String sortOrder = null;
+        Uri uri;
+        if (args != null) {
+            sortOrder = args.getString(ARG_SORT_ORDER);
+            uri = args.getParcelable(ARG_URI);
+        } else {
+            uri = getIntent().getData();
+        }
+
+        return new CursorLoader(this, uri, MessageListAdapter.PROJECTION, null, null, sortOrder);
     }
 
     @Override
@@ -112,6 +164,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
         Log.d(TAG, "onLoadFinished");
         mListAdapter.swapCursor(c);
+        mHandler.removeMessages(MSG_SHOW_INDETERMINATE);
         mSherlock.setProgressBarIndeterminateVisibility(false);
     }
 

@@ -75,7 +75,6 @@ public class MessageService extends Service {
     public static Intent getScheduleIntent() {
         return new Intent(MessageService.ACTION_SCHEDULE_MESSAGE,
                 Message.getUriForStates(Message.STATE_IN_TRANSIT));
-
     }
 
     public void scheduleMessages(Uri messages) {

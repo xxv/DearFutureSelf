@@ -5,12 +5,14 @@ import android.content.ContentValues;
 import android.net.Uri;
 import android.net.Uri.Builder;
 import edu.mit.mobile.android.content.ContentItem;
+import edu.mit.mobile.android.content.DBSortOrder;
 import edu.mit.mobile.android.content.ProviderUtils;
 import edu.mit.mobile.android.content.column.DBColumn;
 import edu.mit.mobile.android.content.column.DatetimeColumn;
 import edu.mit.mobile.android.content.column.IntegerColumn;
 import edu.mit.mobile.android.content.column.TextColumn;
 
+@DBSortOrder(Message.SORT_DEFAULT)
 public class Message implements ContentItem {
 
     public static final String PATH = "message";
