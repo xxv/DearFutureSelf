@@ -5,14 +5,15 @@ import android.net.Uri;
 public interface SharedTextParser {
 
     /**
-     * @param text the shared text to parse
+     * @param sharedText
+     *            the shared text to parse
      * @return true if the given text is from the specified source.
      */
-    public boolean parse(String subject, String text);
+    public boolean parse(String subject, CharSequence sharedText);
     /**
      * @return the extracted body. Must call {@link #parse(String)} first.
      */
-    public String getBody();
+    public CharSequence getBody();
     /**
      * @return the extracted subject. Must call {@link #parse(String)} first.
      */

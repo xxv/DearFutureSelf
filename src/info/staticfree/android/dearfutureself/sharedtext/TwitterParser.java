@@ -9,7 +9,7 @@ import android.net.Uri;
  * Parses and recontextualizes shared tweets so the subject is more useful for sharing with
  * yourself. By default, Twitter's subject is geared toward sharing a tweet with someone else and so
  * it is mostly about the person sharing the tweet (in this case, you, so it's always the same).
- * 
+ *
  */
 public class TwitterParser implements SharedTextParser {
 
@@ -19,11 +19,12 @@ public class TwitterParser implements SharedTextParser {
 
     private static final Pattern EXTRACT_AUTHOR = Pattern.compile("(.+)\\s--\\s(.+?)");
 
-    private String mSubject, mBody;
+    private String mSubject;
+    private CharSequence mBody;
     private Uri mUri;
 
     @Override
-    public boolean parse(String subject, String text) {
+    public boolean parse(String subject, CharSequence text) {
 
         // the default subject for Twitter is useful for sending to other people, but not to
         // ourselves.
@@ -45,7 +46,7 @@ public class TwitterParser implements SharedTextParser {
     }
 
     @Override
-    public String getBody() {
+    public CharSequence getBody() {
 
         return mBody;
     }

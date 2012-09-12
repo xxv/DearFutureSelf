@@ -19,6 +19,7 @@ import org.json.JSONObject;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -47,6 +48,8 @@ public class MessageUtils {
 
         MESSAGES_KEY = "messages"
             ;
+
+    private static final String[] INTENT_PROJECTION = new String[] { Message.SUBJECT, Message.BODY };
 
     // TODO double-check that we can actually write to SD card
     public static void exportJson(Context context, String file) throws IOException,
@@ -210,6 +213,23 @@ public class MessageUtils {
         }
     }
 
+    public static Intent toShareIntent(Context context, Uri message) {
+        final Cursor c = context.getContentResolver().query(message, INTENT_PROJECTION, null, null,
+                null);
+        try {
+            if (c.moveToFirst()) {
+                final Intent i = new Intent(Intent.ACTION_SEND);
+                i.setType("text/plain");
+                i.putExtra(Intent.EXTRA_TEXT, c.getString(c.getColumnIndex(Message.BODY)));
+                i.putExtra(Intent.EXTRA_SUBJECT, c.getString(c.getColumnIndex(Message.SUBJECT)));
+                return Intent.createChooser(i, "Share with");
+            } else {
+                throw new IllegalArgumentException("could not extract message from provided uri");
+            }
+        } finally {
+            c.close();
+        }
+    }
 }
 
 

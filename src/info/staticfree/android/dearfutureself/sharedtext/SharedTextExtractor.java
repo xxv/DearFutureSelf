@@ -11,7 +11,7 @@ public class SharedTextExtractor implements SharedTextParser {
 
     private SharedTextParser mSuccessfulParser;
 
-    public boolean parse(String subject, String sharedText) {
+    public boolean parse(String subject, CharSequence sharedText) {
         boolean success = false;
         for (final SharedTextParser parser: mParsers){
             success = parser.parse(subject, sharedText);
@@ -23,7 +23,7 @@ public class SharedTextExtractor implements SharedTextParser {
         return success;
     }
 
-    public String getBody(){
+    public CharSequence getBody() {
         return mSuccessfulParser.getBody();
     }
 

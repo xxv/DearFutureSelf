@@ -1,6 +1,7 @@
 package info.staticfree.android.dearfutureself;
 
 import info.staticfree.android.dearfutureself.content.Message;
+import info.staticfree.android.dearfutureself.content.MessageUtils;
 import info.staticfree.android.dearfutureself.content.MessageUtils.SetStateTask;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -205,6 +206,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
             case R.id.edit:
                 startActivity(new Intent(Intent.ACTION_EDIT, itemUri));
+                return true;
+
+            case R.id.share:
+                startActivity(MessageUtils.toShareIntent(this, itemUri));
                 return true;
 
             case R.id.delete:
