@@ -211,6 +211,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
                 new SetStateTask(this).execute(itemUri, Message.STATE_DELETED);
                 return true;
 
+            case R.id.mark_unread:
+                new SetStateTask(this).execute(itemUri, Message.STATE_NEW);
+                return true;
+
             default:
                 return super.onContextItemSelected(item);
         }
