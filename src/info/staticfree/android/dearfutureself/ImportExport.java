@@ -62,6 +62,14 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
         findViewById(R.id.export_msgs).setOnClickListener(this);
         mBackupList = (ListView) findViewById(R.id.backups);
         final File externalDir = getExternalFilesDir(null);
+        if (externalDir == null) {
+            Toast.makeText(
+                    this,
+                    "At the moment, Import/Export requires an external files folder. If you have an SD card, please mount it and try again.",
+                    Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
         mBackupAdapter = new BackupAdapter(this, android.R.layout.simple_list_item_1, externalDir);
         mBackupList.setAdapter(mBackupAdapter);
         mBackupList.setOnItemClickListener(this);
