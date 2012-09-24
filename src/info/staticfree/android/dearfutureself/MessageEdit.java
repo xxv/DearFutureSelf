@@ -61,7 +61,7 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
         mData = intent.getData();
 
         if (Intent.ACTION_INSERT.equals(mAction)) {
-            mSherlock.setTitle(R.string.new_message);
+            setTitle(R.string.new_message);
 
         } else if (Intent.ACTION_EDIT.equals(mAction)) {
             setSendIndicator(false);
@@ -195,6 +195,11 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
         }
     }
 
+    @Override
+    protected void onTitleChanged(CharSequence title, int color) {
+        mSherlock.dispatchTitleChanged(title, color);
+        super.onTitleChanged(title, color);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         mSherlock.getMenuInflater().inflate(R.menu.message_edit_options, menu);
