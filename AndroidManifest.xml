@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="info.staticfree.android.dearfutureself"
     android:installLocation="internalOnly"
     android:versionCode="8"
-    android:versionName="0.2.4" xmlns:tools="http://schemas.android.com/tools">
+    android:versionName="0.2.4" >
 
     <supports-screens android:anyDensity="true" />
 
@@ -77,7 +78,8 @@
         </activity>
         <activity
             android:name="MessageEdit"
-            android:label="@string/edit_message" tools:ignore="ExportedActivity">
+            android:label="@string/edit_message"
+            tools:ignore="ExportedActivity" >
             <intent-filter android:label="@string/new_message" >
                 <action android:name="android.intent.action.INSERT" />
 
@@ -100,6 +102,18 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <activity-alias
+            android:name="CreateShortcut"
+            android:label="@string/shortcut_title_new_message"
+            android:targetActivity="MessageEdit" >
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+
         <activity
             android:name="MessageView"
             android:label="@string/message_from_your_past"

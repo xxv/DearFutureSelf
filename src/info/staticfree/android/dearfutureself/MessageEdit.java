@@ -78,6 +78,15 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
                 mBodyView.setText(body);
             }
             mData = Message.CONTENT_URI;
+        } else if (Intent.ACTION_CREATE_SHORTCUT.equals(mAction)) {
+            createShortcut();
+            finish();
+            return;
+        } else {
+            Toast.makeText(this, "Cannot display this content; unhandled intent.",
+                    Toast.LENGTH_LONG).show();
+            finish();
+            return;
         }
 
         // default time is now plus 1 minute. This lets you easily send a message just a nudge in
@@ -86,6 +95,17 @@ public class MessageEdit extends FragmentActivity implements LoaderCallbacks<Cur
         mTimelineEntry.setRange(1000 * 60 * 60 * 5);
         mTimelineEntry.setMinimumTime(System.currentTimeMillis());
 
+    }
+
+    private void createShortcut() {
+        final Intent newMessage = new Intent(Intent.ACTION_INSERT, Message.CONTENT_URI);
+
+        final Intent response = new Intent();
+        response.putExtra(Intent.EXTRA_SHORTCUT_INTENT, newMessage);
+        response.putExtra(Intent.EXTRA_SHORTCUT_NAME, getText(R.string.shortcut_title_new_message));
+        response.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
+                Intent.ShortcutIconResource.fromContext(this, R.drawable.ic_launcher));
+        setResult(RESULT_OK, response);
     }
 
     private boolean mSendIndicator = true;
