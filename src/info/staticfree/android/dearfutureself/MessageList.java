@@ -72,10 +72,21 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     private final Handler mHandler = new MessageListHandler(mSherlock);
 
+    private final OnCloseListener mOnSearchCloseListener = new OnCloseListener() {
+
+        @Override
+        public boolean onClose() {
+            onNewIntent(new Intent(Intent.ACTION_VIEW, INBOX_URI));
+            return false;
+        }
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         mSherlock.requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
         super.onCreate(savedInstanceState);
+        mSherlock.setUiOptions(ActivityInfo.UIOPTION_SPLIT_ACTION_BAR_WHEN_NARROW);
         mSherlock.setContentView(R.layout.main);
 
         // re-applied here, as the label for the launcher is shorter
