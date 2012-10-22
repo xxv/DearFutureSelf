@@ -8,6 +8,12 @@
         android:title="@string/new_message"
         android:titleCondensed="@string/new_message_condensed"/>
     <item
+        android:id="@+id/search"
+        android:actionViewClass="com.actionbarsherlock.widget.SearchView"
+        android:icon="@drawable/abs__ic_search"
+        android:showAsAction="ifRoom"
+        android:title="@android:string/search_go"/>
+    <item
         android:id="@+id/import_export"
         android:icon="@android:drawable/ic_menu_upload"
         android:showAsAction="withText|ifRoom"

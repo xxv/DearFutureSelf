@@ -3,8 +3,11 @@ package info.staticfree.android.dearfutureself;
 import info.staticfree.android.dearfutureself.content.Message;
 import info.staticfree.android.dearfutureself.content.MessageUtils;
 import info.staticfree.android.dearfutureself.content.MessageUtils.SetStateTask;
+import android.app.SearchManager;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +26,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.ActionBarSherlock;
@@ -30,6 +34,8 @@ import com.actionbarsherlock.ActionBarSherlock.OnCreateOptionsMenuListener;
 import com.actionbarsherlock.ActionBarSherlock.OnOptionsItemSelectedListener;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.widget.SearchView;
+import com.actionbarsherlock.widget.SearchView.OnCloseListener;
 
 public class MessageList extends FragmentActivity implements LoaderCallbacks<Cursor>,
         OnClickListener, OnItemClickListener, OnOptionsItemSelectedListener,
@@ -40,6 +46,8 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     private final ActionBarSherlock mSherlock = ActionBarSherlock.wrap(this);
 
     private ListView mList;
+
+    private Uri mMessages;
 
     public static final Uri INBOX_URI = Message.getUriForStates(Message.STATE_NEW,
             Message.STATE_READ);
@@ -108,43 +116,47 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     protected void onNewIntent(Intent intent) {
-        // sanity-check the intents
-        if (intent.getData() == null) {
-            intent.setData(INBOX_URI);
-        }
+
+        Uri data;
 
         final String action = intent.getAction();
 
-        if (!Intent.ACTION_MAIN.equals(action)
-                && !(Intent.ACTION_VIEW.equals(action) && Message.CONTENT_TYPE_DIR.equals(intent
-                        .resolveType(this)))) {
+        setIntent(intent);
+
+        if (Intent.ACTION_MAIN.equals(action)) {
+
+            data = INBOX_URI;
+            loadData(data);
+
+        } else if ((Intent.ACTION_VIEW.equals(action) && Message.CONTENT_TYPE_DIR.equals(intent
+                .resolveType(this)))) {
+            data = intent.getData();
+            loadData(data);
+
+        } else if (Intent.ACTION_SEARCH.equals(action)) {
+            final String query = intent.getStringExtra(SearchManager.QUERY);
+            search(query);
+
+        } else {
             Toast.makeText(this, "This application can't handle the provided intent.",
                     Toast.LENGTH_LONG).show();
             setResult(RESULT_CANCELED);
             finish();
-            return;
         }
 
-        setIntent(intent);
+    }
 
-        Bundle args = intent.getExtras();
-        if (args == null) {
-            args = new Bundle();
-        }
-        args.putParcelable(ARG_URI, intent.getData());
+    private void search(String query) {
+        final Uri data = Message.CONTENT_URI.buildUpon()
+                .appendQueryParameter(Message.SUBJECT + "~", query).build();
+        loadData(data);
+    }
+
+    private void loadData(Uri data) {
+        final Bundle args = new Bundle();
+
+        args.putParcelable(ARG_URI, data);
         getSupportLoaderManager().restartLoader(0, args, this);
-    }
-
-    void setData(Uri data) {
-        setData(data, null);
-    }
-
-    void setData(Uri data, String sortOrder) {
-        final Intent i = getIntent();
-        i.setData(data);
-        i.putExtra(ARG_SORT_ORDER, sortOrder);
-
-        onNewIntent(i);
     }
 
     @Override
@@ -152,7 +164,8 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         Log.d(TAG, "onCreateLoader");
         mHandler.sendEmptyMessageDelayed(MSG_SHOW_INDETERMINATE, SHOW_INDETERMINATE_DELAY);
 
-        findViewById(android.R.id.empty).setVisibility(View.INVISIBLE);
+        final TextView empty = (TextView) findViewById(android.R.id.empty);
+        empty.setVisibility(View.INVISIBLE);
 
         String sortOrder = null;
         Uri uri;
@@ -162,6 +175,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         } else {
             uri = getIntent().getData();
         }
+        mMessages = uri;
+
+        empty.setText(Intent.ACTION_SEARCH.equals(getIntent().getAction()) ? R.string.message_list_empty_search
+                : R.string.message_list_empty);
 
         return new CursorLoader(this, uri, MessageListAdapter.PROJECTION, null, null, sortOrder);
     }
@@ -200,7 +217,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public boolean onContextItemSelected(android.view.MenuItem item) {
-        final Uri baseUri = getIntent().getData();
+        final Uri baseUri = mMessages;
         AdapterView.AdapterContextMenuInfo info;
         try {
             info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -246,7 +263,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add:
-                startActivity(new Intent(Intent.ACTION_INSERT, getIntent().getData()));
+                startActivity(new Intent(Intent.ACTION_INSERT, mMessages));
                 return true;
 
             case R.id.import_export:
@@ -259,8 +276,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
     @Override
     public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
-        startActivity(new Intent(Intent.ACTION_VIEW, ContentUris.withAppendedId(getIntent()
-                .getData(), id)));
+        startActivity(new Intent(Intent.ACTION_VIEW, ContentUris.withAppendedId(mMessages, id)));
 
     }
 
@@ -272,7 +288,12 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         mSherlock.getMenuInflater().inflate(R.menu.message_list_options, menu);
+        final SearchManager sm = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+
+        final SearchView sv = (SearchView) menu.findItem(R.id.search).getActionView();
+        sv.setSearchableInfo(sm.getSearchableInfo(getComponentName()));
+        sv.setOnCloseListener(mOnSearchCloseListener);
+
         return true;
     }
-
 }
