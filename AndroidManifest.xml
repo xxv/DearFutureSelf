@@ -124,6 +124,7 @@
         <activity
             android:name="MessageView"
             android:label="@string/message_from_your_past"
+            android:parentActivityName=".MessageList"
             android:permission="info.staticfree.android.dearfutureself.READ_MESSAGES" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -136,7 +137,8 @@
         <activity
             android:name=".ImportExport"
             android:exported="false"
-            android:label="Import/Export" >
+            android:label="Import/Export"
+            android:parentActivityName=".MessageList" >
             <intent-filter android:label="@string/new_message" >
                 <action android:name="info.staticfree.android.dearfutureself.IMPORT_EXPORT" />
 

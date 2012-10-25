@@ -125,7 +125,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
         final String dataType = (data != null) ? intent.resolveType(this) : null;
 
-        if (Intent.ACTION_MAIN.equals(action)) {
+        if (Intent.ACTION_MAIN.equals(action) || action == null) {
 
             data = INBOX_URI;
             loadData(data);
@@ -142,6 +142,7 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
             search(query);
 
         } else {
+            Log.w(TAG, "refusing to handle intent " + intent);
             Toast.makeText(this, "This application can't handle the provided intent.",
                     Toast.LENGTH_LONG).show();
             setResult(RESULT_CANCELED);
