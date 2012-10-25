@@ -10,6 +10,14 @@
         android:layout_height="wrap_content"
         android:text="@string/export_messages" />
 
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/import_messages"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
     <ListView
         android:id="@+id/backups"
         android:layout_width="match_parent"
