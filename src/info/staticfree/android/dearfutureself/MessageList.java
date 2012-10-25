@@ -117,21 +117,25 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     @Override
     protected void onNewIntent(Intent intent) {
 
-        Uri data;
+        Uri data = intent.getData();
 
         final String action = intent.getAction();
 
         setIntent(intent);
+
+        final String dataType = (data != null) ? intent.resolveType(this) : null;
 
         if (Intent.ACTION_MAIN.equals(action)) {
 
             data = INBOX_URI;
             loadData(data);
 
-        } else if ((Intent.ACTION_VIEW.equals(action) && Message.CONTENT_TYPE_DIR.equals(intent
-                .resolveType(this)))) {
-            data = intent.getData();
+        } else if ((Intent.ACTION_VIEW.equals(action) && Message.CONTENT_TYPE_DIR.equals(dataType))) {
             loadData(data);
+
+        } else if ((Intent.ACTION_VIEW.equals(action) && Message.CONTENT_TYPE_ITEM.equals(dataType))) {
+            startActivity(new Intent(action, data));
+            finish();
 
         } else if (Intent.ACTION_SEARCH.equals(action)) {
             final String query = intent.getStringExtra(SearchManager.QUERY);
@@ -143,7 +147,6 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
             setResult(RESULT_CANCELED);
             finish();
         }
-
     }
 
     private void search(String query) {

@@ -169,7 +169,11 @@
             android:authorities="info.staticfree.android.dearfutureself"
             android:exported="true"
             android:readPermission="info.staticfree.android.dearfutureself.READ_MESSAGES"
-            android:writePermission="info.staticfree.android.dearfutureself.WRITE_MESSAGES" />
+            android:writePermission="info.staticfree.android.dearfutureself.WRITE_MESSAGES" >
+            <path-permission
+                android:pathPrefix="/search_suggest_query"
+                android:readPermission="android.permission.GLOBAL_SEARCH" />
+        </provider>
     </application>
 
 </manifest>

@@ -86,5 +86,6 @@ public class Message implements ContentItem {
 
     public static final String
         CONTENT_TYPE_DIR = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH,
-        CONTENT_TYPE_ITEM = ProviderUtils.TYPE_DIR_PREFIX + MessageProvider.AUTHORITY + "." + PATH;
+            CONTENT_TYPE_ITEM = ProviderUtils.TYPE_ITEM_PREFIX + MessageProvider.AUTHORITY + "."
+                    + PATH;
 }
