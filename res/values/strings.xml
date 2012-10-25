@@ -41,7 +41,7 @@
     <string name="years">years</string>
     <string name="mark_unread">Mark unread</string>
     <string name="shortcut_title_new_message">New message to self</string>
-    <string name="search_hint">Search received messages</string>
+    <string name="search_hint">Search messages</string>
     <string name="message_list_empty_search">No messages match your search.</string>
     <string name="search_settings_description">Messages received from yourself</string>
     
