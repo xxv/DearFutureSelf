@@ -734,15 +734,24 @@ public class TimelineEntry extends View {
             | DateUtils.FORMAT_SHOW_WEEKDAY;
 
     public static CharSequence getFormattedDateTime(Context context, long time) {
-        if (Build.VERSION.SDK_INT >= 17) {
+        final long fromNow = Math.abs(System.currentTimeMillis() - time);
 
-            return DateUtils.getRelativeDateTimeString(context, time, DateUtils.MINUTE_IN_MILLIS,
-                    DateUtils.WEEK_IN_MILLIS, DATE_FORMAT_ARGS);
-        } else {
-            return info.staticfree.android.widget.text.format.DateUtils.getRelativeDateTimeString(
-                    context, time, DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS,
-                    DATE_FORMAT_ARGS);
+        final StringBuilder sb = new StringBuilder();
+        if (fromNow > DateUtils.DAY_IN_MILLIS) {
+            sb.append(DateUtils.formatDateTime(context, time, DateUtils.FORMAT_SHOW_WEEKDAY));
+            sb.append(", ");
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+
+            sb.append(DateUtils.getRelativeDateTimeString(context, time,
+                    DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DATE_FORMAT_ARGS));
+        } else {
+            sb.append(info.staticfree.android.widget.text.format.DateUtils
+                    .getRelativeDateTimeString(context, time, DateUtils.MINUTE_IN_MILLIS,
+                            DateUtils.WEEK_IN_MILLIS, DATE_FORMAT_ARGS));
+        }
+        return sb.toString();
     }
 
     @Override
