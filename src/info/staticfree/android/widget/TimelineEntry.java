@@ -13,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
@@ -728,11 +729,20 @@ public class TimelineEntry extends View {
         notifyListener();
     }
 
+    private static final int DATE_FORMAT_ARGS = DateUtils.FORMAT_SHOW_TIME
+            | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR
+            | DateUtils.FORMAT_SHOW_WEEKDAY;
+
     public static CharSequence getFormattedDateTime(Context context, long time) {
-        return info.staticfree.android.widget.text.format.DateUtils.getRelativeDateTimeString(
-                context, time, DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS,
-                DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_SHOW_DATE
-                        | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_WEEKDAY);
+        if (Build.VERSION.SDK_INT >= 17) {
+
+            return DateUtils.getRelativeDateTimeString(context, time, DateUtils.MINUTE_IN_MILLIS,
+                    DateUtils.WEEK_IN_MILLIS, DATE_FORMAT_ARGS);
+        } else {
+            return info.staticfree.android.widget.text.format.DateUtils.getRelativeDateTimeString(
+                    context, time, DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS,
+                    DATE_FORMAT_ARGS);
+        }
     }
 
     @Override
