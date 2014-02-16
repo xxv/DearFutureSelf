@@ -29,7 +29,7 @@ import android.os.AsyncTask;
 import android.text.format.Time;
 import android.util.Log;
 import edu.mit.mobile.android.content.SQLGenerationException;
-import edu.mit.mobile.android.content.column.DBColumn;
+import edu.mit.mobile.android.content.annotation.SQLExtractor;
 import edu.mit.mobile.android.content.column.DBColumnType;
 import edu.mit.mobile.android.content.column.DatetimeColumn;
 import edu.mit.mobile.android.content.column.IntegerColumn;
@@ -64,7 +64,7 @@ public class MessageUtils {
 
             final Map<String, Integer> types = new HashMap<String, Integer>(colCount);
 
-            final DBColumn.Extractor extractor = new DBColumn.Extractor(Message.class);
+            final SQLExtractor extractor = new SQLExtractor(Message.class);
 
             for (final Field field : Message.class.getFields()) {
                 int type = 0;
