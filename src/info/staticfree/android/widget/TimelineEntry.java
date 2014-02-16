@@ -122,7 +122,7 @@ public class TimelineEntry extends View {
     /**
      * How far up from the bottom the label is
      */
-    private static final float INTERVAL_LABEL_FROM_BOTTOM = 6;
+    private static final float INTERVAL_LABEL_FROM_EDGE = 6;
     private static final float INTERVAL_LABEL_TEXT_SIZE = 12;
 
     static {
@@ -164,9 +164,10 @@ public class TimelineEntry extends View {
     }
 
     private void init(Context context) {
-        mIntervals = new Interval[] { new YearInterval(), new MonthInterval(context),
-                new WeekInterval(), new DayInterval(), new HourInterval(),
-                new MinuteInterval(15, true), new MinuteInterval() };
+        mIntervals =
+                new Interval[] { new YearInterval(), new MonthInterval(context),
+                        new WeekInterval(), new DayInterval(), new HourInterval(),
+                        new MinuteInterval(15, true), new MinuteInterval() };
 
         mMarker = context.getResources().getDrawable(R.drawable.timeline_marker);
 
@@ -238,18 +239,19 @@ public class TimelineEntry extends View {
         }
 
         @SuppressWarnings("unused")
-        public static final Parcelable.Creator<SavedState> CREATOR = new Creator<TimelineEntry.SavedState>() {
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Creator<TimelineEntry.SavedState>() {
 
-            @Override
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
-            }
+                    @Override
+                    public SavedState[] newArray(int size) {
+                        return new SavedState[size];
+                    }
 
-            @Override
-            public SavedState createFromParcel(Parcel source) {
-                return new SavedState(source);
-            }
-        };
+                    @Override
+                    public SavedState createFromParcel(Parcel source) {
+                        return new SavedState(source);
+                    }
+                };
     }
 
     public void setOnChangeListener(OnChangeListener onChangeListener) {
@@ -258,8 +260,8 @@ public class TimelineEntry extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int measuredWidth = View.MeasureSpec.getSize(widthMeasureSpec), measuredHeight = View.MeasureSpec
-                .getSize(heightMeasureSpec);
+        int measuredWidth = View.MeasureSpec.getSize(widthMeasureSpec), measuredHeight =
+                View.MeasureSpec.getSize(heightMeasureSpec);
 
         switch (View.MeasureSpec.getMode(widthMeasureSpec)) {
             case View.MeasureSpec.UNSPECIFIED:
@@ -307,7 +309,8 @@ public class TimelineEntry extends View {
     Calendar mCalendar;
     private float mTickLineSize;
 
-    private final HashMap<Interval, CharSequence> mIntervalLabels = new HashMap<TimelineEntry.Interval, CharSequence>();
+    private final HashMap<Interval, CharSequence> mIntervalLabels =
+            new HashMap<TimelineEntry.Interval, CharSequence>();
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -356,8 +359,8 @@ public class TimelineEntry extends View {
                     PAINT_TICK.setStrokeWidth(1);
                 }
                 final float tickSize = ((mMajorTickSize - mMinorTickSize) * scale + mMinorTickSize);
-                final float textSize = Math.round(((TICK_LABEL_SIZE_LARGE - TICK_LABEL_SIZE_SMALL)
-                        * scale + TICK_LABEL_SIZE_SMALL));
+                final float textSize =
+                        Math.round(((TICK_LABEL_SIZE_LARGE - TICK_LABEL_SIZE_SMALL) * scale + TICK_LABEL_SIZE_SMALL));
                 PAINT_TICK_LABEL.setTextSize(textSize);
                 mCalendar.setTimeInMillis(mStartTime);
                 interval.startTicking(mCalendar);
@@ -391,7 +394,7 @@ public class TimelineEntry extends View {
                         mIntervalLabels.put(interval, intervalLabel);
                     }
                     canvas.drawText(intervalLabel, 0, intervalLabel.length(), w / 2, h
-                            - INTERVAL_LABEL_FROM_BOTTOM * mDisplayMetrics.scaledDensity,
+                            - INTERVAL_LABEL_FROM_EDGE * mDisplayMetrics.scaledDensity,
                             PAINT_INTERVAL_LABEL);
                     drawnIntervalLabel = true;
                 }
