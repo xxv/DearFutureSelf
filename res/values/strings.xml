@@ -17,6 +17,7 @@
     <string name="new_message_condensed">New</string>
     <string name="sent_x">Sent %1$s</string>
     <string name="notification_messages_have_arrived">Messages have arrived</string>
+    <string name="notification_messages_plus_n_more">+%1$d more</string>
     <string name="you_have_x_new_messages">You have %1$d new messages from yourself.</string>
     <string name="message_from_your_past">Message from your past</string>
     <string name="message_list_empty">You have no messages. What would you tell your tomorrow self?</string>
