@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="info.staticfree.android.dearfutureself"
     android:installLocation="internalOnly"
-    android:versionCode="10"
-    android:versionName="0.2.6" >
+    android:versionCode="11"
+    android:versionName="0.3" >
 
     <supports-screens android:anyDensity="true" />
 
