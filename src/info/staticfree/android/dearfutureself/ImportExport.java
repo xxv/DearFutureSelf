@@ -23,8 +23,8 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.database.DataSetObservable;
 import android.database.DataSetObserver;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.content.ModernAsyncTask;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -231,7 +231,7 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
         }
     }
 
-    public class ExportTask extends ModernAsyncTask<File, Long, Boolean> {
+    public class ExportTask extends AsyncTask<File, Long, Boolean> {
 
         private ProgressDialog progress;
 

@@ -112,10 +112,6 @@ public class TimelineEntry extends View {
 
     private ScrollHandler mHandler;
 
-    /**
-     * ms that the pointer must be held down to stop scrolling.
-     */
-    private static final long STOP_SCROLLING_DELAY = 200;
     private static final Paint PAINT_TICK_LABEL = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private static final Paint PAINT_INTERVAL_LABEL = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -644,7 +640,8 @@ public class TimelineEntry extends View {
             if (scale > FULL_LABELING_CUTOFF_MONTH || c.get(Calendar.MONTH) % 2 == 0) {
                 return DateUtils.formatDateTime(mContext, c.getTimeInMillis(),
                         DateUtils.FORMAT_NO_YEAR | DateUtils.FORMAT_SHOW_DATE
-                                | DateUtils.FORMAT_NO_MONTH_DAY | DateUtils.FORMAT_NO_NOON_MIDNIGHT
+                                | DateUtils.FORMAT_NO_MONTH_DAY | DateUtils.FORMAT_NO_MIDNIGHT
+                                | DateUtils.FORMAT_NO_NOON
                                 | (scale < 0.95 ? DateUtils.FORMAT_ABBREV_MONTH : 0));
             }
             return null;
