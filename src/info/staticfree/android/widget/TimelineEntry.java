@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
@@ -23,6 +24,7 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
@@ -73,6 +75,9 @@ public class TimelineEntry extends View {
     private int mWidth, mHeight;
 
     private int mPaddingLeft, mPaddingRight, mPaddingTop, mPaddingBottom;
+
+    private final Rect mMarkerBounds = new Rect();
+    private final Rect mDrawBounds = new Rect();
 
     private float mScaleX;
     private float mMultX;
@@ -393,12 +398,12 @@ public class TimelineEntry extends View {
             }
         }
 
-        // final Path path = new Path();
-        // XXX path.canvas.drawPath(path, PAINT_DISABLED);
-
         canvas.restore();
 
-        mMarker.setBounds(mPaddingLeft, 0, w + mPaddingRight, h);
+        canvas.getClipBounds(mDrawBounds);
+        Gravity.apply(Gravity.CENTER_HORIZONTAL | Gravity.TOP, mMarker.getIntrinsicWidth(),
+                mMarker.getIntrinsicHeight(), mDrawBounds, mMarkerBounds);
+        mMarker.setBounds(mMarkerBounds);
         mMarker.draw(canvas);
     }
 
