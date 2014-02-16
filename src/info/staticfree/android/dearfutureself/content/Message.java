@@ -64,6 +64,8 @@ public class Message implements ContentItem {
 
     public static final Uri NEW_MESSAGES = getUriForStates(STATE_NEW);
 
+    private static final String TAG = Message.class.getSimpleName();
+
     /**
      * Constructs a Uri matching any of the provided states (joined with an "or").
      *
@@ -76,10 +78,20 @@ public class Message implements ContentItem {
 
         boolean delimit = false;
 
+        final StringBuilder query = new StringBuilder();
+
+        query.append('(');
         for (final int state : states) {
-            msg.appendQueryParameter((delimit ? "|" : "") + Message.STATE, String.valueOf(state));
+            query.append(delimit ? "|" : "");
+            query.append(Message.STATE);
+            query.append('=');
+            query.append(state);
+
             delimit = true;
         }
+        query.append(')');
+
+        msg.encodedQuery(query.toString());
 
         return msg.build();
     }

@@ -3,6 +3,10 @@ package info.staticfree.android.dearfutureself;
 import info.staticfree.android.dearfutureself.content.Message;
 import info.staticfree.android.dearfutureself.content.MessageUtils;
 import info.staticfree.android.dearfutureself.content.MessageUtils.SetStateTask;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import android.app.SearchManager;
 import android.content.ContentUris;
 import android.content.Context;
@@ -151,9 +155,18 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     }
 
     private void search(String query) {
-        final Uri data = Message.CONTENT_URI.buildUpon()
-                .appendQueryParameter(Message.SUBJECT + "~", query).build();
-        loadData(data);
+        Uri data;
+        try {
+            data = INBOX_URI
+                    .buildUpon()
+                    .encodedQuery(
+                            INBOX_URI.getEncodedQuery() + "&" + Message.SUBJECT + "~="
+                                    + URLEncoder.encode(query, "utf-8")).build();
+            loadData(data);
+        } catch (final UnsupportedEncodingException e) {
+            Log.e(TAG, "encoding error", e);
+        }
+
     }
 
     private void loadData(Uri data) {
