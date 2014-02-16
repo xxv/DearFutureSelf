@@ -25,6 +25,7 @@ import android.database.DataSetObservable;
 import android.database.DataSetObserver;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -46,10 +47,12 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
 
     private final ActionBarSherlock mSherlock = ActionBarSherlock.wrap(this);
 
-    public static final String EXPORT_PREFIX = "dearfutureself-",
-        EXPORT_SUFFIX = ".json";
+    public static final String EXPORT_PREFIX = "dearfutureself-", EXPORT_SUFFIX = ".json";
 
-    private static final Pattern DATE_STAMPED_FILE = Pattern.compile(Pattern.quote(EXPORT_PREFIX) + "(\\d+)"+ Pattern.quote(EXPORT_SUFFIX));
+    private static final Pattern DATE_STAMPED_FILE = Pattern.compile(Pattern.quote(EXPORT_PREFIX)
+            + "(\\d+)" + Pattern.quote(EXPORT_SUFFIX));
+
+    private static final String EXPORT_FOLDER = "DearFutureSelf";
 
     private ListView mBackupList;
     private BackupAdapter mBackupAdapter;
@@ -61,7 +64,8 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
 
         findViewById(R.id.export_msgs).setOnClickListener(this);
         mBackupList = (ListView) findViewById(R.id.backups);
-        final File externalDir = getExternalFilesDir(null);
+        final File externalDir = getOrMakeExportFolder();
+
         if (externalDir == null) {
             Toast.makeText(
                     this,
@@ -70,23 +74,73 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
             finish();
             return;
         }
+
+        migrateOldStorage();
+
         mBackupAdapter = new BackupAdapter(this, android.R.layout.simple_list_item_1, externalDir);
         mBackupList.setAdapter(mBackupAdapter);
         mBackupList.setOnItemClickListener(this);
         mBackupAdapter.reload();
 
+    }
 
+    private void migrateOldStorage() {
+        final File exportFolder = getOrMakeExportFolder();
+
+        if (exportFolder == null) {
+            return;
+        }
+
+        final File oldPath = getExternalFilesDir(null);
+
+        if (null != oldPath && oldPath.exists()) {
+            final File[] files = oldPath.listFiles(new BackupFileFilter());
+
+            if (files != null) {
+                for (final File file : files) {
+                    if (file.renameTo(new File(exportFolder, file.getName()))) {
+                    Log.i(TAG, "Migrated " + file + " to " + exportFolder);
+                    } else {
+                        Log.e(TAG, "Error migrating " + file + " to " + exportFolder);
+                    }
+                }
+            }
+        }
+    }
+
+    private File getExportFolder() {
+        return new File(Environment.getExternalStorageDirectory(), EXPORT_FOLDER);
+    }
+
+    private File getOrMakeExportFolder() {
+        final File folder = getExportFolder();
+
+        if (!folder.exists()) {
+            if (!folder.mkdirs()) {
+                Log.d(TAG, "Error creating " + folder + ".");
+                return null;
+            }
+        }
+
+        return folder;
+    }
+
+    protected void startExport() {
+        final File folder = getOrMakeExportFolder();
+
+        if (folder != null) {
+            new ExportTask().execute(new File(folder, EXPORT_PREFIX + System.currentTimeMillis()
+                    + EXPORT_SUFFIX));
+        }
     }
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
 
-        case R.id.export_msgs:
-                new ExportTask().execute(new File(getExternalFilesDir(null), EXPORT_PREFIX
-                        + System.currentTimeMillis()
-                        + EXPORT_SUFFIX));
-            break;
+            case R.id.export_msgs:
+                startExport();
+                break;
         }
 
     }
@@ -113,21 +167,19 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
             mInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         }
 
-        public void reload(){
-            final File[] files = mBaseDir.listFiles(new FileFilter() {
+        public void reload() {
+            if (!mBaseDir.exists()) {
+                return;
+            }
 
-                @Override
-                public boolean accept(File pathname) {
-                    return pathname.getName().startsWith(EXPORT_PREFIX);
-                }
-            });
+            final File[] files = mBaseDir.listFiles(new BackupFileFilter());
 
             final BackupItem[] backupItems = new BackupItem[files.length];
 
-            for (int i = 0; i < files.length; i++){
+            for (int i = 0; i < files.length; i++) {
                 long time = 0;
                 final Matcher m = DATE_STAMPED_FILE.matcher(files[i].getName());
-                if (m.matches()){
+                if (m.matches()) {
                     time = Long.valueOf(m.group(1));
                 }
 
@@ -167,11 +219,12 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null){
+            if (convertView == null) {
                 convertView = mInflater.inflate(mLayout, parent, false);
             }
 
-            ((TextView)convertView.findViewById(android.R.id.text1)).setText(getItem(position).toString());
+            ((TextView) convertView.findViewById(android.R.id.text1)).setText(getItem(position)
+                    .toString());
 
             return convertView;
         }
@@ -216,7 +269,7 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
         private final Context mContext;
 
         public BackupItem(Context context, File path, long backupDate) {
-            mContext= context;
+            mContext = context;
             this.path = path;
             this.backupDate = backupDate;
         }
@@ -295,5 +348,12 @@ public class ImportExport extends Activity implements OnClickListener, OnItemCli
             e.printStackTrace();
         }
 
+    }
+
+    private static class BackupFileFilter implements FileFilter {
+        @Override
+        public boolean accept(File pathname) {
+            return pathname.getName().startsWith(EXPORT_PREFIX);
+        }
     }
 }
