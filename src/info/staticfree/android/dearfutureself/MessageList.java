@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -115,14 +116,12 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
         onNewIntent(getIntent());
 
         startService(MessageService.getScheduleIntent());
-
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
 
         Uri data = intent.getData();
-
         final String action = intent.getAction();
 
         setIntent(intent);
@@ -157,11 +156,12 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     private void search(String query) {
         Uri data;
         try {
-            data = INBOX_URI
-                    .buildUpon()
-                    .encodedQuery(
-                            INBOX_URI.getEncodedQuery() + "&" + Message.SUBJECT + "~="
-                                    + URLEncoder.encode(query, "utf-8")).build();
+            data =
+                    INBOX_URI
+                            .buildUpon()
+                            .encodedQuery(
+                                    INBOX_URI.getEncodedQuery() + "&" + Message.SUBJECT + "~="
+                                            + URLEncoder.encode(query, "utf-8")).build();
             loadData(data);
         } catch (final UnsupportedEncodingException e) {
             Log.e(TAG, "encoding error", e);
@@ -229,6 +229,23 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         getMenuInflater().inflate(R.menu.message_view_options, menu);
+
+        final AdapterView.AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+        final Integer messageState = (Integer) info.targetView.getTag(R.id.message_state);
+
+        if (messageState != null) {
+            if (messageState == Message.STATE_NEW) {
+                menu.findItem(R.id.mark_read).setVisible(true);
+                menu.findItem(R.id.mark_unread).setVisible(false);
+            } else if (messageState == Message.STATE_READ) {
+                menu.findItem(R.id.mark_read).setVisible(false);
+                menu.findItem(R.id.mark_unread).setVisible(true);
+            } else {
+                menu.findItem(R.id.mark_read).setVisible(false);
+                menu.findItem(R.id.mark_unread).setVisible(false);
+            }
+        }
+
         super.onCreateContextMenu(menu, v, menuInfo);
     }
 
@@ -263,6 +280,10 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
 
             case R.id.mark_unread:
                 new SetStateTask(this).execute(itemUri, Message.STATE_NEW);
+                return true;
+
+            case R.id.mark_read:
+                new SetStateTask(this).execute(itemUri, Message.STATE_READ);
                 return true;
 
             default:

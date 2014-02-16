@@ -76,6 +76,7 @@ public class MessageListAdapter extends SimpleCursorAdapter {
             //DateUtils.getRelativeDateTimeString(mContext, date, DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_TIME);
         ((TextView)v.findViewById(R.id.date)).setText(dateString);
 
+        v.setTag(R.id.message_state, state);
 
         return v;
     }

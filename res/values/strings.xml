@@ -40,6 +40,7 @@
     <string name="weeks">weeks</string>
     <string name="months">months</string>
     <string name="years">years</string>
+    <string name="mark_read">Mark read</string>
     <string name="mark_unread">Mark unread</string>
     <string name="shortcut_title_new_message">New message to self</string>
     <string name="search_hint">Search messages</string>
