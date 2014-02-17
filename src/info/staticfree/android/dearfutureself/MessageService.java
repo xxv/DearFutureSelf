@@ -9,11 +9,14 @@ import android.app.Service;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.BigTextStyle;
 import android.support.v4.app.NotificationCompat.Builder;
@@ -35,6 +38,8 @@ public class MessageService extends Service {
      */
     public static final String ACTION_SHOW_NOTIFICATION =
             "info.staticfree.android.dearfutureself.ACTION_SHOW_NOTIFICATION";
+
+    public static final String PREF_KEY_LAST_VIEWED_NOTIFICATION = "last_viewed_notification";
 
     /**
      * Schedule one or more {@link Message}s to be delivered in the future. If the destination time
@@ -161,8 +166,12 @@ public class MessageService extends Service {
         final Cursor c = cr.query(message, PROJECTION, null, null, null);
 
         final Cursor newMessages =
-                cr.query(Message.CONTENT_URI, PROJECTION, Message.STATE + "=?",
-                        new String[] { String.valueOf(Message.STATE_NEW) }, null);
+                cr.query(
+                        Message.CONTENT_URI,
+                        PROJECTION,
+                        Message.STATE + "=? AND " + Message.DATE_ARRIVE + ">= ?",
+                        new String[] { String.valueOf(Message.STATE_NEW),
+                                String.valueOf(getLastViewed()) }, null);
         try {
             if (!c.moveToFirst()) {
                 Log.e(TAG, "message " + message + " doesn't seem to actually exist");
@@ -301,5 +310,18 @@ public class MessageService extends Service {
         }
 
         return subject;
+    }
+
+    private long getLastViewed() {
+        final SharedPreferences preferences =
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return preferences.getLong(PREF_KEY_LAST_VIEWED_NOTIFICATION, 0);
+    }
+
+    public static void markLastViewed(Context context) {
+        final SharedPreferences preferences =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        preferences.edit().putLong(PREF_KEY_LAST_VIEWED_NOTIFICATION, System.currentTimeMillis())
+                .apply();
     }
 }

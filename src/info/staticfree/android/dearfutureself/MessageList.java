@@ -119,6 +119,13 @@ public class MessageList extends FragmentActivity implements LoaderCallbacks<Cur
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        MessageService.markLastViewed(getApplicationContext());
+    }
+
+    @Override
     protected void onNewIntent(Intent intent) {
 
         Uri data = intent.getData();

@@ -37,6 +37,13 @@ public class MessageView extends FragmentActivity implements LoaderCallbacks<Cur
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        MessageService.markLastViewed(getApplicationContext());
+    }
+
     private void loadFromCursor(Cursor c) {
         if (!c.moveToFirst()) {
             return;
