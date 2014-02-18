@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="info.staticfree.android.dearfutureself"
     android:installLocation="internalOnly"
-    android:versionCode="11"
-    android:versionName="0.3" >
+    android:versionCode="12"
+    android:versionName="0.3.1" >
 
     <supports-screens android:anyDensity="true" />
 
@@ -14,7 +14,7 @@
 
     <!-- OSMDroid permissions -->
     <!--
-     	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> 
+        <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -53,12 +53,12 @@
         android:theme="@style/DearFutureSelfTheme" >
 
         <!--
-    	<activity android:name=".DestinationEdit" android:label="destination edit test">
+        <activity android:name=".DestinationEdit" android:label="destination edit test">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>    		
-    	</activity>
+            </intent-filter>
+	</activity>
         -->
         <activity
             android:name=".MessageList"
